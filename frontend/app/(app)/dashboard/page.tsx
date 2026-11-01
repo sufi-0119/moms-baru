@@ -4,22 +4,10 @@ import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
 import Link from 'next/link';
 import {
-  Users,
-  BellRing,
-  UserPlus,
   ArrowUpRight,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  TrendingUp,
-  Wallet,
-  Building,
-  HardHat,
   Filter,
   RotateCcw,
-  Sparkles,
-  Award
+  Sparkles
 } from 'lucide-react';
 
 export default function DashboardPage() {

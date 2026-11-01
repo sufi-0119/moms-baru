@@ -11,12 +11,7 @@ import {
   Search,
   Plus,
   FileText,
-  DollarSign,
-  TrendingUp,
-  Download,
-  Filter,
   Eye,
-  Check,
   X
 } from 'lucide-react';
 
@@ -113,10 +108,10 @@ export default function ExpensesPage() {
       try {
         const { data, error } = await supabase.from('expenses').select('*');
         if (data && data.length > 0 && !error) {
-          const mapped: ExpenseItem[] = data.map((d: any, idx: number) => ({
-            id: d.id ? `EXP-${d.id}` : `EXP-2025-00${idx + 1}`,
-            expense_date: d.expense_date || '2025-02-28',
-            description: d.title || d.description || 'Pengeluaran Operasional',
+          const mapped: ExpenseItem[] = data.map((d: Record<string, unknown>, idx: number) => ({
+            id: typeof d.id === 'string' || typeof d.id === 'number' ? `EXP-${d.id}` : `EXP-2025-00${idx + 1}`,
+            expense_date: typeof d.expense_date === 'string' ? d.expense_date : '2025-02-28',
+            description: typeof d.title === 'string' ? d.title : typeof d.description === 'string' ? d.description : 'Pengeluaran Operasional',
             category: d.category === 'Lainnya' ? 'Lainnya' : 'Operasional',
             amount: Number(d.amount) || 0,
             status:
@@ -125,7 +120,7 @@ export default function ExpensesPage() {
                 : d.status === 'reviewing' || d.status === 'approved'
                 ? 'Dalam Proses'
                 : 'Pengajuan',
-            notes: d.notes || '',
+            notes: typeof d.notes === 'string' ? d.notes : '',
             submitted_by: 'Admin HC/GA'
           }));
           setExpenses(mapped);

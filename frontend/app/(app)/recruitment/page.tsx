@@ -7,18 +7,13 @@ import {
   Users,
   CheckCircle2,
   Clock,
-  AlertCircle,
   Search,
-  Filter,
   Plus,
   Mail,
   Eye,
-  Edit2,
-  ChevronRight,
   ShieldCheck,
   Building,
   HardHat,
-  FileText,
   X
 } from 'lucide-react';
 
@@ -195,17 +190,17 @@ export default function RecruitmentPage() {
         const { data, error } = await supabase.from('recruitment_candidates').select('*');
         if (data && data.length > 0 && !error) {
           // Map DB columns to local state
-          const mapped: RecruitmentCandidate[] = data.map((d: any, idx: number) => ({
-            id: d.id ? `REC-${d.id}` : `REC-2025-00${idx + 1}`,
-            name: d.name || 'Kandidat',
-            phone: d.phone || '08123456789',
-            recommendation: d.position_applied || 'Operasional Hauling Vale',
-            current_stage: d.status || 'Interview',
+          const mapped: RecruitmentCandidate[] = data.map((d: Record<string, unknown>, idx: number) => ({
+            id: typeof d.id === 'string' || typeof d.id === 'number' ? `REC-${d.id}` : `REC-2025-00${idx + 1}`,
+            name: typeof d.name === 'string' ? d.name : 'Kandidat',
+            phone: typeof d.phone === 'string' ? d.phone : '08123456789',
+            recommendation: typeof d.position_applied === 'string' ? d.position_applied : 'Operasional Hauling Vale',
+            current_stage: typeof d.status === 'string' ? d.status : 'Interview',
             stage_group: 'Internal Cabang',
             eligibility_status: d.status === 'onboarding' ? 'Layak Kerja' : 'Belum Layak Kerja',
             progress_pct: d.status === 'onboarding' ? 100 : 50,
-            notes: d.notes || '',
-            created_at: d.created_at || '2025-02-20',
+            notes: typeof d.notes === 'string' ? d.notes : '',
+            created_at: typeof d.created_at === 'string' ? d.created_at : '2025-02-20',
             email_sent: false,
             stages_data: INITIAL_CANDIDATES[0].stages_data
           }));

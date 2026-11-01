@@ -5,19 +5,12 @@ import { PageHeader } from '@/components/AppShell';
 import { supabase } from '@/lib/supabase';
 import {
   Sparkles,
-  Calendar,
   Award,
   TrendingUp,
-  Image as ImageIcon,
   Plus,
   Search,
-  Filter,
-  CheckCircle2,
-  ChevronRight,
   ArrowRight,
-  FileText,
-  X,
-  Share2
+  X
 } from 'lucide-react';
 
 export interface CulturePost {
@@ -112,17 +105,21 @@ export default function CultureHubPage() {
       try {
         const { data, error } = await supabase.from('culture_posts').select('*');
         if (data && data.length > 0 && !error) {
-          const mapped: CulturePost[] = data.map((d: any, idx: number) => ({
-            id: d.id ? `CUL-${d.id}` : `CUL-2025-00${idx + 1}`,
-            title: d.title || 'Dokumentasi Aktivitas',
-            category: d.category || 'Culture',
-            date: d.event_date || d.created_at || '2025-02-25',
-            goal: d.goal || 'Membangun nilai budaya perusahaan',
-            description: d.content || d.description || '',
-            pic: d.pic || 'Cabang Luwu Raya',
+          const mapped: CulturePost[] = data.map((d: Record<string, unknown>, idx: number) => ({
+            id: typeof d.id === 'string' || typeof d.id === 'number' ? `CUL-${d.id}` : `CUL-2025-00${idx + 1}`,
+            title: typeof d.title === 'string' ? d.title : 'Dokumentasi Aktivitas',
+            category:
+              d.category === 'Implementation/Improvement' || d.category === 'Achievement/Recognition'
+                ? d.category
+                : 'Culture',
+            date: typeof d.event_date === 'string' ? d.event_date : typeof d.created_at === 'string' ? d.created_at : '2025-02-25',
+            goal: typeof d.goal === 'string' ? d.goal : 'Membangun nilai budaya perusahaan',
+            description: typeof d.content === 'string' ? d.content : typeof d.description === 'string' ? d.description : '',
+            pic: typeof d.pic === 'string' ? d.pic : 'Cabang Luwu Raya',
             image_url:
-              d.image_url ||
-              'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?q=80&w=800&auto=format&fit=crop',
+              typeof d.image_url === 'string' && d.image_url
+                ? d.image_url
+                : 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?q=80&w=800&auto=format&fit=crop',
             status: 'Publikasi'
           }));
           setPosts(mapped);
@@ -481,7 +478,7 @@ export default function CultureHubPage() {
                     onChange={(e) =>
                       setNewPost({
                         ...newPost,
-                        category: e.target.value as any
+                        category: e.target.value as 'Culture' | 'Implementation/Improvement' | 'Achievement/Recognition'
                       })
                     }
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-xs focus:border-emerald-600 focus:outline-none"
