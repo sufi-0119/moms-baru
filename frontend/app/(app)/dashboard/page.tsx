@@ -14,20 +14,16 @@ export default function DashboardPage() {
   // Visual Analytic Filters state
   const [filterPeriod, setFilterPeriod] = useState('ALL');
   const [filterQuarter, setFilterQuarter] = useState('ALL');
-  const [filterCategory, setFilterCategory] = useState('ALL');
-  const [filterStatus, setFilterStatus] = useState('ALL');
 
   const handleResetFilter = () => {
     setFilterPeriod('ALL');
     setFilterQuarter('ALL');
-    setFilterCategory('ALL');
-    setFilterStatus('ALL');
   };
 
   return (
     <>
       <PageHeader
-        title="Dashboard Operasional HC & GA"
+        title="Dashboard Operasional"
         subtitle="Gambaran menyeluruh aktivitas HC & GA Cabang Luwu Raya · PT Bumi Jasa Utama (Kalla Transport & Logistics)"
       />
 
@@ -51,7 +47,7 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="block text-[11px] font-semibold text-gray-500">Tahun</label>
               <select
@@ -79,39 +75,11 @@ export default function DashboardPage() {
                 <option value="Q4">Q4 (Okt - Des)</option>
               </select>
             </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-gray-500">Kategori Modul</label>
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 focus:border-emerald-600 focus:outline-none"
-              >
-                <option value="ALL">Semua Kategori</option>
-                <option value="driver">Driver & Hauling</option>
-                <option value="karyawan">Karyawan Staff</option>
-                <option value="biaya">Biaya & Operasional</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-gray-500">Status Operasi</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-700 focus:border-emerald-600 focus:outline-none"
-              >
-                <option value="ALL">Semua Status</option>
-                <option value="aktif">Aktif & Berjalan</option>
-                <option value="urgent">Perlu Perhatian Segera</option>
-                <option value="selesai">Selesai</option>
-              </select>
-            </div>
           </div>
         </section>
 
-        {/* 1.2 SUMMARY KPI CARDS (7 KARTU UTAMA) */}
-        <section className="grid grid-cols-2 gap-3.5 sm:grid-cols-4 lg:grid-cols-7">
+        {/* 1.2 SUMMARY KPI CARDS (6 KARTU UTAMA) */}
+        <section className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
           {/* Card 1: Total Karyawan */}
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-emerald-300">
             <p className="text-[11px] font-semibold text-gray-500">Total Karyawan</p>
@@ -140,21 +108,14 @@ export default function DashboardPage() {
             <p className="mt-1 text-[10px] text-amber-700 font-semibold">3 Hari H</p>
           </div>
 
-          {/* Card 5: Reminder Selesai */}
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/30 p-4 shadow-sm">
-            <p className="text-[11px] font-semibold text-emerald-800">Reminder Selesai</p>
-            <h3 className="mt-1.5 text-2xl font-black text-emerald-800">94</h3>
-            <p className="mt-1 text-[10px] text-emerald-700 font-semibold">Tepat Waktu (77%)</p>
-          </div>
-
-          {/* Card 6: Total Pengajuan Biaya */}
+          {/* Card 5: Total Pengajuan Biaya */}
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <p className="text-[11px] font-semibold text-gray-500">Pengajuan Biaya</p>
             <h3 className="mt-1.5 text-lg font-black text-gray-900">Rp 33.7 Jt</h3>
             <p className="mt-1 text-[10px] text-gray-500">5 Transaksi</p>
           </div>
 
-          {/* Card 7: Total Biaya Dibayar */}
+          {/* Card 6: Total Biaya Dibayar */}
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50/30 p-4 shadow-sm">
             <p className="text-[11px] font-semibold text-emerald-800">Biaya Dibayar</p>
             <h3 className="mt-1.5 text-lg font-black text-emerald-800">Rp 17.3 Jt</h3>

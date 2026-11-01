@@ -12,7 +12,9 @@ import {
   Plus,
   FileText,
   Eye,
-  X
+  X,
+  FileSpreadsheet,
+  Edit2
 } from 'lucide-react';
 
 export interface ExpenseItem {
@@ -90,6 +92,7 @@ export default function ExpensesPage() {
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [selectedExpense, setSelectedExpense] = useState<ExpenseItem | null>(null);
+  const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New expense form state
@@ -98,6 +101,7 @@ export default function ExpensesPage() {
     category: 'Operasional' as 'Operasional' | 'Lainnya',
     amount: '',
     expense_date: new Date().toISOString().split('T')[0],
+    status: 'Pengajuan' as 'Pengajuan' | 'Dalam Proses' | 'Sudah Dibayar',
     notes: '',
     submitted_by: 'Admin HC/GA Cabang'
   });
@@ -162,6 +166,28 @@ export default function ExpensesPage() {
     }).format(val);
   };
 
+  const handleExportExcel = () => {
+    const headers = ['ID Biaya', 'Tanggal', 'Deskripsi Biaya', 'Kategori', 'Nominal (IDR)', 'Status', 'PIC', 'Catatan'];
+    const rows = filteredExpenses.map(exp => [
+      exp.id,
+      exp.expense_date,
+      `"${exp.description}"`,
+      exp.category,
+      exp.amount,
+      exp.status,
+      `"${exp.submitted_by}"`,
+      `"${exp.notes}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `monitoring_biaya_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newExpense.description.trim() || !newExpense.amount) return;
@@ -172,7 +198,7 @@ export default function ExpensesPage() {
       category: newExpense.category,
       amount: Number(newExpense.amount),
       expense_date: newExpense.expense_date,
-      status: 'Pengajuan',
+      status: newExpense.status,
       notes: newExpense.notes || 'Pengajuan baru dari cabang.',
       submitted_by: newExpense.submitted_by
     };
@@ -184,18 +210,18 @@ export default function ExpensesPage() {
       category: 'Operasional',
       amount: '',
       expense_date: new Date().toISOString().split('T')[0],
+      status: 'Pengajuan',
       notes: '',
       submitted_by: 'Admin HC/GA Cabang'
     });
   };
 
-  const handleUpdateStatus = (id: string, newStatus: 'Dalam Proses' | 'Sudah Dibayar') => {
-    setExpenses((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status: newStatus } : e))
-    );
-    if (selectedExpense && selectedExpense.id === id) {
-      setSelectedExpense({ ...selectedExpense, status: newStatus });
-    }
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingExpense) return;
+    setExpenses(prev => prev.map(item => item.id === editingExpense.id ? editingExpense : item));
+    setEditingExpense(null);
+    alert(`Data biaya ${editingExpense.id} berhasil diperbarui!`);
   };
 
   return (
@@ -284,6 +310,14 @@ export default function ExpensesPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-700" />
+              <span>Export Excel</span>
+            </button>
+
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
@@ -391,12 +425,22 @@ export default function ExpensesPage() {
                       )}
                     </td>
                     <td className="px-4 py-3.5 text-center">
-                      <button
-                        onClick={() => setSelectedExpense(exp)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-emerald-100 hover:text-emerald-800"
-                      >
-                        <Eye className="h-3.5 w-3.5" /> Detail
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          title="Lihat Detail Biaya"
+                          onClick={() => setSelectedExpense(exp)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 transition hover:bg-emerald-100 hover:text-emerald-800"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          title="Edit Perkembangan Biaya"
+                          onClick={() => setEditingExpense({ ...exp })}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 hover:text-emerald-800"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -454,34 +498,9 @@ export default function ExpensesPage() {
                 <p className="mt-0.5 text-gray-700">{selectedExpense.notes}</p>
               </div>
 
-              {/* Status Update Control */}
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3">
-                <span className="block text-[11px] font-bold text-emerald-900">
-                  Perbarui Status Pembayaran
-                </span>
-                <div className="mt-2 flex items-center gap-2">
-                  {selectedExpense.status === 'Pengajuan' && (
-                    <button
-                      onClick={() => handleUpdateStatus(selectedExpense.id, 'Dalam Proses')}
-                      className="flex-1 rounded-xl bg-blue-600 py-2 text-center text-xs font-bold text-white hover:bg-blue-700"
-                    >
-                      Proses ke Reviewing
-                    </button>
-                  )}
-                  {selectedExpense.status !== 'Sudah Dibayar' && (
-                    <button
-                      onClick={() => handleUpdateStatus(selectedExpense.id, 'Sudah Dibayar')}
-                      className="flex-1 rounded-xl bg-emerald-600 py-2 text-center text-xs font-bold text-white hover:bg-emerald-700"
-                    >
-                      Tandai Sudah Dibayar
-                    </button>
-                  )}
-                  {selectedExpense.status === 'Sudah Dibayar' && (
-                    <span className="flex items-center gap-1 text-xs font-bold text-emerald-800">
-                      <CheckCircle2 className="h-4 w-4" /> Pembayaran telah selesai & diverifikasi.
-                    </span>
-                  )}
-                </div>
+              <div className="rounded-xl bg-emerald-50 p-3 text-emerald-900">
+                <span className="block text-[10px] font-bold uppercase">Status Pembayaran Terkini</span>
+                <p className="mt-0.5 text-sm font-bold">{selectedExpense.status}</p>
               </div>
             </div>
 
@@ -497,7 +516,89 @@ export default function ExpensesPage() {
         </div>
       )}
 
-      {/* MODAL TAMBAH BIAYA */}
+      {/* MODAL EDIT STATUS & PERKEMBANGAN BIAYA */}
+      {editingExpense && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-bold text-gray-900">Edit Perkembangan Biaya: {editingExpense.id}</h3>
+              <button onClick={() => setEditingExpense(null)} className="rounded-full p-1 text-gray-400 hover:bg-gray-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="mt-4 space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-gray-700">Deskripsi Biaya</label>
+                <input
+                  type="text"
+                  value={editingExpense.description}
+                  onChange={(e) => setEditingExpense({ ...editingExpense, description: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 focus:border-emerald-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-gray-700">Kategori</label>
+                  <select
+                    value={editingExpense.category}
+                    onChange={(e) => setEditingExpense({ ...editingExpense, category: e.target.value as any })}
+                    className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 focus:border-emerald-600 focus:outline-none"
+                  >
+                    <option value="Operasional">Operasional</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-gray-700">Status Biaya (Perkembangan) *</label>
+                  <select
+                    value={editingExpense.status}
+                    onChange={(e) => setEditingExpense({ ...editingExpense, status: e.target.value as any })}
+                    className="mt-1 w-full rounded-xl border border-emerald-600 bg-emerald-50/50 p-2.5 font-bold text-emerald-900 focus:outline-none"
+                  >
+                    <option value="Pengajuan">Pengajuan</option>
+                    <option value="Dalam Proses">Dalam Proses</option>
+                    <option value="Sudah Dibayar">Sudah Dibayar</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700">Nominal (IDR)</label>
+                <input
+                  type="number"
+                  value={editingExpense.amount}
+                  onChange={(e) => setEditingExpense({ ...editingExpense, amount: Number(e.target.value) })}
+                  className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 font-mono focus:border-emerald-600 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700">Catatan / Bukti Perkembangan</label>
+                <textarea
+                  rows={3}
+                  value={editingExpense.notes}
+                  onChange={(e) => setEditingExpense({ ...editingExpense, notes: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 focus:border-emerald-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <button type="button" onClick={() => setEditingExpense(null)} className="rounded-xl border border-gray-300 px-4 py-2">
+                  Batal
+                </button>
+                <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 font-bold text-white hover:bg-emerald-700">
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TAMBAH BIAYA DENGAN SECTION STATUS BIAYA */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
@@ -543,27 +644,45 @@ export default function ExpensesPage() {
                 </div>
 
                 <div>
+                  <label className="block text-xs font-bold text-gray-700">Status Biaya Awal *</label>
+                  <select
+                    value={newExpense.status}
+                    onChange={(e) =>
+                      setNewExpense({
+                        ...newExpense,
+                        status: e.target.value as 'Pengajuan' | 'Dalam Proses' | 'Sudah Dibayar'
+                      })
+                    }
+                    className="mt-1 w-full rounded-xl border border-emerald-600 bg-emerald-50/50 p-2.5 text-xs font-bold text-emerald-900 focus:outline-none"
+                  >
+                    <option value="Pengajuan">Pengajuan (Baru diajukan)</option>
+                    <option value="Dalam Proses">Dalam Proses (Review HO)</option>
+                    <option value="Sudah Dibayar">Sudah Dibayar (Lunas)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label className="block text-xs font-bold text-gray-700">Tanggal Transaksi</label>
                   <input
                     type="date"
                     value={newExpense.expense_date}
                     onChange={(e) => setNewExpense({ ...newExpense, expense_date: e.target.value })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-xs focus:border-emerald-600 focus:outline-none"
-                  >
-                  </input>
+                  />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700">Nominal (Rupiah) *</label>
-                <input
-                  type="number"
-                  required
-                  placeholder="Misal: 4500000"
-                  value={newExpense.amount}
-                  onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-xs font-mono focus:border-emerald-600 focus:outline-none"
-                />
+                <div>
+                  <label className="block text-xs font-bold text-gray-700">Nominal (Rupiah) *</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="Misal: 4500000"
+                    value={newExpense.amount}
+                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-xs font-mono focus:border-emerald-600 focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div>
