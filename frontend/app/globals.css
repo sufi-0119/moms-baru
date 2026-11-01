@@ -1,0 +1,102 @@
+@import "tailwindcss";
+@import "./stitch-styles.css";
+
+@theme {
+  --color-canvas: #F4F6F9;
+
+  /* Material Design 3 Color Tokens (from Stitch) */
+  --color-primary: #107C41;
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #A7F3D0;
+  --color-on-primary-container: #047857;
+  --color-primary-fixed: #D1FAE5;
+  --color-on-primary-fixed: #065F46;
+  --color-primary-fixed-variant: #0B6834;
+  --color-on-primary-fixed-variant: #ECFDF5;
+
+  --color-secondary: #6B7280;
+  --color-on-secondary: #FFFFFF;
+  --color-secondary-container: #E0E7FF;
+  --color-on-secondary-container: #3730A3;
+  --color-secondary-fixed: #DDD6FE;
+  --color-on-secondary-fixed-variant: #5B21B6;
+
+  --color-tertiary: #F59E0B;
+  --color-on-tertiary: #FFFFFF;
+  --color-tertiary-container: #FEF3C7;
+  --color-on-tertiary-container: #92400E;
+  --color-tertiary-fixed: #FEF3C7;
+  --color-on-tertiary-fixed-variant: #B45309;
+  --color-tertiary-fixed-dim: #FDE68A;
+
+  --color-error: #DC2626;
+  --color-on-error: #FFFFFF;
+  --color-error-container: #FEE2E2;
+  --color-on-error-container: #991B1B;
+
+  --color-surface: #F4F6F9;
+  --color-on-surface: #1F2937;
+  --color-on-surface-variant: #6B7280;
+  --color-surface-container: #E5E7EB;
+  --color-surface-container-low: #F3F4F6;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-high: #D1D5DB;
+
+  --color-outline: #D1D5DB;
+  --color-outline-variant: #9CA3AF;
+
+  --color-inverse-surface: #1F2937;
+  --color-inverse-on-surface: #F9FAFB;
+
+  /* Kalla Brand Colors */
+  --color-kalla-green: #107C41;
+  --color-kalla-darkgreen: #0b6834;
+  --color-kalla-sidebar: #121620;
+
+  /* Legacy forest/jade (preserve for existing components) */
+  --color-forest-50: #eef7f2;
+  --color-forest-100: #d5ebe0;
+  --color-forest-400: #4a9a7c;
+  --color-forest-500: #2f7d62;
+  --color-forest-600: #23634e;
+  --color-forest-700: #1c4f3f;
+  --color-forest-800: #143b2f;
+  --color-forest-900: #0d2a21;
+  --color-forest-950: #071a14;
+
+  --color-jade-50: #ecfdf5;
+  --color-jade-100: #d1fae5;
+  --color-jade-200: #a7f3d0;
+  --color-jade-300: #6ee7b7;
+  --color-jade-400: #34d399;
+  --color-jade-500: #10b981;
+  --color-jade-600: #059669;
+  --color-jade-700: #047887;
+  --color-jade-800: #065f46;
+
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-headline: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+
+  --shadow-card: 0 1px 2px rgba(16, 40, 32, 0.04), 0 8px 24px -18px rgba(16, 40, 32, 0.25);
+  --shadow-float: 0 24px 60px -24px rgba(7, 26, 20, 0.35);
+  --shadow-sidebar: 0 24px 60px -30px rgba(7, 26, 20, 0.55);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: #F4F6F9;
+    color: #1F2937;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@utility active-nav-gradient {
+  background: linear-gradient(to right, #10b981, #059669);
+  box-shadow: 0 12px 24px -14px rgba(16, 185, 129, 0.95);
+}

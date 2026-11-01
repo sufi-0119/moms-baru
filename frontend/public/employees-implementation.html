@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Karyawan & Driver - Implementasi React</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background-color: #F4F6F9; color: #1F2937; }
+    .kalla { --tw-bg-opacity: 1; background-color: rgb(16 124 65 / var(--tw-bg-opacity)); }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+  <div class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <aside class="fixed inset-y-0 left-0 z-30 flex w-64 flex-shrink-0 select-none flex-col justify-between border-r border-slate-800 bg-slate-900 text-slate-300">
+      <div>
+        <!-- Brand Header -->
+        <div class="flex h-20 items-center gap-3 border-b border-slate-800 bg-slate-950 px-6">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white p-1.5 shadow-md">
+            <img alt="Kalla" class="h-7 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7_nxc3iXJc1_XyjhhynevdSzFDX9tplTW7XjyxFAn_OFuSGB0sD6x_s4Zcdo7lcFNrqqdNUMGvvz6-wjc1k_jbguVjxiYTfTdxFFmmB3XLHCcB-E2OCttycP9hGpL_5DhhSSaOWAB0Hl9VM3fJCQjS4RXdz2OnAsvhdJvkpt5PU-C-bg7O543tOWqbrpCFzLc0PtJn431d_XEEbreLstPcbfzTWQggBpfUv9dfUNXTUR9Ni2GY2GO">
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-bold leading-tight tracking-wider text-white">KALLA</span>
+            <span class="text-[10px] font-semibold uppercase tracking-wide text-amber-400">Transport & Logistics</span>
+          </div>
+        </div>
+        <!-- Navigation -->
+        <div class="space-y-1 p-4">
+          <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Utama & Proyek</div>
+          <a href="#" class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white">
+            <div class="flex items-center gap-3"><i class="fa-solid fa-chart-pie w-5 text-center"></i> <span>Dashboard</span></div>
+          </a>
+          <a href="#" class="flex items-center justify-between rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-900/30">
+            <div class="flex items-center gap-3"><i class="fa-solid fa-users-gear w-5 text-center"></i> <span class="whitespace-nowrap">Karyawan & Driver</span></div>
+            <span class="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold">256</span>
+          </a>
+          <a href="#" class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white">
+            <div class="flex items-center gap-3"><i class="fa-solid fa-file-contract w-5 text-center"></i> <span class="whitespace-nowrap">Monitoring SK & PKWT</span></div>
+            <span class="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-400">5 Exp</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white">
+            <i class="fa-solid fa-mountain-sun w-5 text-center"></i> <span class="whitespace-nowrap">Manpower Report Vale</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white">
+            <i class="fa-solid fa-id-card-clip w-5 text-center"></i> <span class="whitespace-nowrap">Dokumen & Sertifikasi</span>
+          </a>
+          <div class="px-3 pb-2 pt-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Administrasi</div>
+          <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white">
+            <i class="fa-solid fa-sliders w-5 text-center"></i> <span class="whitespace-nowrap">Pengaturan & Hak Akses</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-white">
+            <i class="fa-solid fa-shield-halved w-5 text-center"></i> <span class="whitespace-nowrap">Audit Log Kepegawaian</span>
+          </a>
+        </div>
+      </div>
+      <!-- Footer -->
+      <div class="border-t border-slate-800/80 bg-slate-950 p-4">
+        <a href="#" class="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700/60 px-3 py-2 text-xs font-semibold text-slate-300 transition-all hover:border-rose-800 hover:bg-rose-950/40 hover:text-white">
+          <i class="fa-solid fa-arrow-right-from-bracket text-rose-400"></i> <span>Keluar Sistem</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 pl-64">
+      <!-- TOPBAR -->
+      <header class="h-20 border-b border-gray-200 bg-white px-8 shadow-sm flex items-center justify-between shrink-0">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Database Karyawan & Driver</h1>
+          <p class="mt-1 text-xs leading-relaxed text-gray-500">Kelola master data personil Kalla Transport & Logistics. Tracking kontrak, sertifikasi, dan status operasional real-time.</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="relative w-80 hidden md:block">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input class="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent" placeholder="Cari nama, ID, jabatan, atau proyek...">
+          </div>
+          <div class="relative">
+            <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 relative">
+              <i class="fa-regular fa-bell"></i>
+              <span class="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white">5</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 pl-4">
+            <div class="w-10 h-10 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center ring-2 ring-emerald-500/30 text-sm">HR</div>
+            <div class="text-left hidden md:block">
+              <div class="text-sm font-bold text-gray-800">HR Operations Manager</div>
+              <div class="text-[11px] text-gray-500 font-medium">Divisi People & Culture Kalla</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN BODY -->
+      <main class="flex-1 overflow-y-auto p-8 space-y-6">
+        <!-- KPI CARDS -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- KPI 1: Total -->
+          <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-emerald-300 transition-all flex flex-col justify-between">
+            <div class="mb-3 flex items-start justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Tenaga Kerja</p>
+                <div class="mt-1 flex items-baseline gap-2">
+                  <h3 class="text-2xl font-extrabold text-gray-900">256</h3>
+                  <span class="text-xs font-normal text-gray-500">Orang</span>
+                </div>
+              </div>
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-lg text-emerald-600">
+                <i class="fa-solid fa-users"></i>
+              </div>
+            </div>
+            <div class="flex flex-col items-center justify-center my-8">
+              <div class="relative flex h-20 w-20 items-center justify-center">
+                <svg class="h-20 w-20 -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-gray-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="4"></path>
+                  <path class="text-emerald-600" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="72, 100" stroke-linecap="round" stroke-width="4"></path>
+                  <path class="text-amber-500" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="28, 100" stroke-dashoffset="-72" stroke-linecap="round" stroke-width="4"></path>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
+                  <span class="text-sm font-bold text-gray-900">256</span>
+                  <span class="text-[10px] font-medium text-gray-400">Total</span>
+                </div>
+              </div>
+              <div class="mt-3 flex flex-col items-center gap-1.5 text-[11px]">
+                <div class="flex items-center gap-1.5 text-gray-700">
+                  <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+                  <span>Karyawan</span> <span class="font-bold text-gray-900">184</span> <span class="text-gray-400">(72%)</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-gray-700">
+                  <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                  <span>Driver Project</span> <span class="font-bold text-gray-900">72</span> <span class="text-gray-400">(28%)</span>
+                </div>
+              </div>
+            </div>
+            <div class="border-t border-gray-100 pt-2.5 mt-3 flex items-center justify-between text-xs">
+              <span class="text-gray-600"><strong class="text-emerald-700">184</strong> Karyawan</span>
+              <span class="text-gray-400">•</span>
+              <span class="text-gray-600"><strong class="text-emerald-700">72</strong> Driver Project</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Habis Kontrak -->
+          <div class="rounded-xl border border-amber-200 bg-amber-50/20 p-5 shadow-sm hover:border-amber-500 transition-all flex flex-col justify-between">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-amber-800">Habis Kontrak H-14</p>
+                <h3 class="mt-1 text-2xl font-extrabold text-amber-700">5 <span class="text-xs font-normal text-amber-800">Perlu Evaluasi Segera</span></h3>
+              </div>
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-300 bg-amber-100 text-lg text-amber-700">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+            </div>
+            <div class="mt-3 space-y-2 border-t border-amber-200/60 pt-2.5">
+              <div class="flex items-center justify-between gap-2 rounded-lg border border-amber-200/50 bg-white/80 p-1.5 hover:bg-amber-50/50">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-amber-100 text-[10px] font-bold text-amber-900">HW</div>
+                  <div class="truncate">
+                    <div class="truncate text-[11px] font-bold text-gray-900">Hendra Wijaya</div>
+                    <div class="truncate text-[10px] text-gray-500">HD Operator • Vale Sorowako</div>
+                  </div>
+                </div>
+                <span class="shrink-0 rounded border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">Sisa 8 Hari</span>
+              </div>
+              <div class="flex items-center justify-between gap-2 rounded-lg border border-amber-200/50 bg-white/80 p-1.5 hover:bg-amber-50/50">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-amber-100 text-[10px] font-bold text-amber-900">SN</div>
+                  <div class="truncate">
+                    <div class="truncate text-[11px] font-bold text-gray-900">Siti Nurhaliza</div>
+                    <div class="truncate text-[10px] text-gray-500">Admin Logistik • Makassar HO</div>
+                  </div>
+                </div>
+                <span class="shrink-0 rounded border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">Sisa 11 Hari</span>
+              </div>
+              <div class="flex items-center justify-between gap-2 rounded-lg border border-amber-200/50 bg-white/80 p-1.5 hover:bg-amber-50/50">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-amber-100 text-[10px] font-bold text-amber-900">BS</div>
+                  <div class="truncate">
+                    <div class="truncate text-[11px] font-bold text-gray-900">Budi Santoso</div>
+                    <div class="truncate text-[10px] text-gray-500">Fuel Truck • Vale Sorowako</div>
+                  </div>
+                </div>
+                <span class="shrink-0 rounded border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">Sisa 13 Hari</span>
+              </div>
+            </div>
+            <div class="border-t border-amber-200/60 pt-2.5 mt-3 flex items-center justify-between text-[11px] text-amber-800 font-medium">
+              <span>3 Project Vale, 2 Makassar</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Sebaran Bidang -->
+          <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-emerald-300 transition-all flex flex-col justify-between">
+            <div class="mb-3 flex items-start justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sebaran Bidang / Jabatan</p>
+                <h3 class="mt-1 text-2xl font-extrabold text-gray-900">4 Bidang</h3>
+              </div>
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-xl text-emerald-600">
+                <i class="fa-solid fa-briefcase"></i>
+              </div>
+            </div>
+            <div class="mb-3 flex h-2 overflow-hidden rounded-full bg-gray-100">
+              <div class="h-full bg-emerald-600" style="width: 44%"></div>
+              <div class="h-full bg-emerald-400" style="width: 23%"></div>
+              <div class="h-full bg-amber-500" style="width: 18%"></div>
+              <div class="h-full bg-slate-400" style="width: 15%"></div>
+            </div>
+            <div class="space-y-1.5 text-[11px]">
+              <div class="flex items-center justify-between text-gray-700">
+                <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-600"></span> Driver & Hauling Ops</span>
+                <span class="font-bold text-gray-900">112 <span class="font-normal text-gray-400">(44%)</span></span>
+              </div>
+              <div class="flex items-center justify-between text-gray-700">
+                <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-400"></span> Fleet Maint. & Mekanik</span>
+                <span class="font-bold text-gray-900">58 <span class="font-normal text-gray-400">(23%)</span></span>
+              </div>
+              <div class="flex items-center justify-between text-gray-700">
+                <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-amber-500"></span> Logistik & Supply Chain</span>
+                <span class="font-bold text-gray-900">46 <span class="font-normal text-gray-400">(18%)</span></span>
+              </div>
+              <div class="flex items-center justify-between text-gray-700">
+                <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-slate-400"></span> Admin, HSE & Support</span>
+                <span class="font-bold text-gray-900">40 <span class="font-normal text-gray-400">(15%)</span></span>
+              </div>
+            </div>
+            <div class="border-t border-gray-100 pt-2.5 mt-3 flex items-center justify-between text-[11px] text-gray-500">
+              <span>Operasional Fleet Terbesar</span>
+              <span class="font-semibold text-emerald-700">Hauling Mining</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Vale vs CLM -->
+          <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-emerald-300 transition-all flex flex-col justify-between">
+            <div class="mb-3 flex items-start justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Perbandingan Site Tambang</p>
+                <h3 class="mt-1 text-xl font-extrabold text-gray-900">Vale vs CLM</h3>
+              </div>
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-xl text-amber-700">
+                <i class="fa-solid fa-mountain-sun"></i>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="mb-1 flex justify-between text-[11px] font-semibold">
+                <span class="flex items-center gap-1 text-emerald-800"><span class="h-2 w-2 rounded-full bg-emerald-600"></span> Vale (66%)</span>
+                <span class="flex items-center gap-1 text-amber-800">CLM (34%) <span class="h-2 w-2 rounded-full bg-amber-500"></span></span>
+              </div>
+              <div class="flex h-2.5 overflow-hidden rounded-full bg-gray-100 ring-1 ring-gray-200">
+                <div class="h-full rounded-l-full bg-emerald-600" style="width: 66%"></div>
+                <div class="h-full rounded-r-full bg-amber-500" style="width: 34%"></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1 text-xs">
+              <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-2">
+                <div class="text-[10px] font-semibold uppercase text-gray-500">PT Vale Sorowako</div>
+                <div class="mt-0.5 text-base font-extrabold text-gray-900">168 <span class="text-[10px] font-normal text-gray-500">Org</span></div>
+                <div class="mt-0.5 text-[10px] font-medium text-emerald-700"><i class="fa-solid fa-circle-check mr-0.5 text-[9px]"></i> Full Operation</div>
+              </div>
+              <div class="rounded-lg border border-amber-200 bg-amber-50/40 p-2">
+                <div class="text-[10px] font-semibold uppercase text-gray-500">PT CLM Malili</div>
+                <div class="mt-0.5 text-base font-extrabold text-gray-900">88 <span class="text-[10px] font-normal text-gray-500">Org</span></div>
+                <div class="mt-0.5 text-[10px] font-medium text-amber-700"><i class="fa-solid fa-circle-check mr-0.5 text-[9px]"></i> Hauling Project</div>
+              </div>
+            </div>
+            <div class="border-t border-gray-100 pt-2.5 mt-3 flex items-center justify-between text-[11px] text-gray-500">
+              <span>Wilayah Luwu Timur</span>
+              <span class="font-semibold text-gray-700">Total 256 Personil</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- FILTER TOOLBAR -->
+        <section class="space-y-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex max-w-fit items-center gap-1.5 rounded-lg bg-gray-100/90 p-1">
+              <button class="rounded-md bg-white px-4 py-2 text-xs font-bold text-gray-900 shadow-sm">Semua Data <span class="ml-1 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px]">256</span></button>
+              <button class="rounded-md px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900">Karyawan Staff & Ops <span class="ml-1 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px]">184</span></button>
+              <button class="rounded-md px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900">Driver Project Vale <span class="ml-1 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px]">72</span></button>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="flex items-center gap-2 rounded-lg border border-gray-300 px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                <i class="fa-regular fa-file-excel text-emerald-700"></i> <span>Export Excel / PDF</span>
+              </button>
+              <button class="flex items-center gap-2 rounded-lg border border-emerald-600 px-3.5 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">
+                <i class="fa-solid fa-id-card"></i> <span>+ Tambah Driver</span>
+              </button>
+              <button class="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-700/20 hover:bg-emerald-700">
+                <i class="fa-solid fa-user-plus"></i> <span>+ Tambah Karyawan</span>
+              </button>
+            </div>
+          </div>
+          <div class="grid gap-3 border-t border-gray-100 pt-3 text-xs sm:grid-cols-2 md:grid-cols-4">
+            <div>
+              <label class="mb-1 block font-medium text-gray-500">Status Ikatan Kerja</label>
+              <select class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                <option>Semua Status (Kartap & PKWT)</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block font-medium text-gray-500">Wilayah / Project Site</label>
+              <select class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                <option>Semua Wilayah Kerja</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block font-medium text-gray-500">Departemen / Divisi</label>
+              <select class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                <option>Semua Departemen</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block font-medium text-gray-500">Masa Sisa Kontrak</label>
+              <select class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                <option>Semua Rentang Waktu</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- DATA TABLE -->
+        <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col">
+          <div class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-gray-800">Daftar Tenaga Kerja Terdaftar</span>
+              <span class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-medium text-slate-600">Total 256 records</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Aktif</span>
+              <span class="ml-2 flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span> Expiring Soon</span>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-xs">
+              <thead class="sticky top-0 z-10 border-b border-gray-200 bg-gray-50/90 font-semibold uppercase tracking-wider text-gray-600">
+                <tr>
+                  <th class="px-4 py-3.5">NIK / NID</th>
+                  <th class="px-4 py-3.5">Nama Lengkap & Detail</th>
+                  <th class="px-4 py-3.5">Kategori & Posisi</th>
+                  <th class="px-4 py-3.5">Wilayah / Project Site</th>
+                  <th class="px-4 py-3.5">Status Hubungan Kerja</th>
+                  <th class="px-4 py-3.5">Sisa Masa Kontrak</th>
+                  <th class="px-4 py-3.5 text-center">Status</th>
+                  <th class="px-4 py-3.5 text-center">Tindakan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr class="hover:bg-amber-50/30">
+                  <td class="px-4 py-3.5"><div class="font-mono font-bold text-gray-800">KL-20220814<span class="block text-[10px] font-normal text-gray-400">7312****0001</span></div></td>
+                  <td class="px-4 py-3.5"><div class="flex items-center gap-3"><div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-300 bg-emerald-100 font-bold text-emerald-800 text-[10px]">IP</div><div><div class="text-sm font-bold text-gray-900">Ilham Pratama, S.T.</div><div class="text-[11px] text-gray-500">ilham.pratama@kalla.co.id • Gol. O+</div></div></div></td>
+                  <td class="px-4 py-3.5"><span class="mb-0.5 inline-block rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">Karyawan</span><div class="font-medium text-gray-800">Fleet Maintenance Supervisor</div></td>
+                  <td class="px-4 py-3.5"><div class="font-medium text-gray-800">Project Vale Sorowako</div><div class="text-[10px] text-gray-500">Site Luwu Timur, Sulawesi Selatan</div></td>
+                  <td class="px-4 py-3.5"><span class="rounded-md border border-amber-200 bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800">PKWT-2</span><div class="mt-0.5 text-[10px] text-gray-500">SK No: 088/HR-VALE/2023</div></td>
+                  <td class="px-4 py-3.5"><div class="flex items-center gap-1.5 font-bold text-rose-700"><i class="fa-solid fa-clock-rotate-left"></i> <span>11 Hari Lagi</span></div><div class="text-[10px] text-gray-500">Selesai: 28 Feb 2025</div></td>
+                  <td class="px-4 py-3.5 text-center"><span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800"><span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span> Aktif</span></td>
+                  <td class="px-4 py-3.5 text-center"><div class="flex items-center justify-center gap-1.5"><button class="flex h-7 w-7 items-center justify-center rounded bg-gray-100 text-gray-600 hover:bg-emerald-100 hover:text-emerald-700"><i class="fa-regular fa-eye"></i></button><button class="flex h-7 w-7 items-center justify-center rounded bg-amber-50 text-amber-700 hover:bg-amber-100"><i class="fa-solid fa-pen-to-square"></i></button></div></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-4 py-3.5"><div class="font-mono font-bold text-gray-800">DR-20210045<span class="block text-[10px] font-normal text-gray-400">7324****0004</span></div></td>
+                  <td class="px-4 py-3.5"><div class="flex items-center gap-3"><div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-amber-100 font-bold text-amber-900 text-[10px]">AM</div><div><div class="text-sm font-bold text-gray-900">Andi Muhammad Reza</div><div class="text-[11px] text-gray-500">SIM BII Umum: Exp 2027 • MCU: FIT</div></div></div></td>
+                  <td class="px-4 py-3.5"><span class="mb-0.5 inline-block rounded bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-800">Driver Project</span><div class="font-medium text-gray-800">Heavy Dump Truck Operator (HD785)</div></td>
+                  <td class="px-4 py-3.5"><div class="font-medium text-gray-800">Project Vale Sorowako</div><div class="text-[10px] text-gray-500">Mining Pit Hauling Operations</div></td>
+                  <td class="px-4 py-3.5"><span class="rounded-md border border-emerald-200 bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">Kartap (Tetap)</span><div class="mt-0.5 text-[10px] text-gray-500">Masa Kerja: 4 Thn 2 Bln</div></td>
+                  <td class="px-4 py-3.5"><div class="font-semibold text-gray-700">Tetap (Permanen)</div><div class="text-[10px] text-gray-500">Pensiun: Thn 2042</div></td>
+                  <td class="px-4 py-3.5 text-center"><span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800"><span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span> Aktif</span></td>
+                  <td class="px-4 py-3.5 text-center"><div class="flex items-center justify-center gap-1.5"><button class="flex h-7 w-7 items-center justify-center rounded bg-gray-100 text-gray-600 hover:bg-emerald-100 hover:text-emerald-700"><i class="fa-regular fa-eye"></i></button><button class="flex h-7 w-7 items-center justify-center rounded bg-gray-100 text-gray-600 hover:bg-gray-200"><i class="fa-solid fa-pen-to-square"></i></button></div></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-4 py-3.5"><div class="font-mono font-bold text-gray-800">DR-20230198<span class="block text-[10px] font-normal text-gray-400">7403****0008</span></div></td>
+                  <td class="px-4 py-3.5"><div class="flex items-center gap-3"><div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-300 bg-blue-100 font-bold text-blue-800 text-[10px]">BS</div><div><div class="text-sm font-bold text-gray-900">Budi Santoso</div><div class="text-[11px] text-gray-500">SIM BII Umum • Sertifikasi BNSP Mining</div></div></div></td>
+                  <td class="px-4 py-3.5"><span class="mb-0.5 inline-block rounded bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-800">Driver Project</span><div class="font-medium text-gray-800">Fuel & Water Truck Driver</div></td>
+                  <td class="px-4 py-3.5"><div class="font-medium text-gray-800">Regional Kendari & Kolaka</div><div class="text-[10px] text-gray-500">Site Logistik Pomalaa</div></td>
+                  <td class="px-4 py-3.5"><span class="rounded-md border border-amber-200 bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800">PKWT-1</span><div class="mt-0.5 text-[10px] text-gray-500">SK No: 112/HR-KDR/2024</div></td>
+                  <td class="px-4 py-3.5"><div class="font-semibold text-gray-700">7 Bulan Lagi</div><div class="text-[10px] text-gray-500">Selesai: 30 Sep 2025</div></td>
+                  <td class="px-4 py-3.5 text-center"><span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800"><span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span> Aktif</span></td>
+                  <td class="px-4 py-3.5 text-center"><div class="flex items-center justify-center gap-1.5"><button class="flex h-7 w-7 items-center justify-center rounded bg-gray-100 text-gray-600 hover:bg-emerald-100 hover:text-emerald-700"><i class="fa-regular fa-eye"></i></button><button class="flex h-7 w-7 items-center justify-center rounded bg-gray-100 text-gray-600 hover:bg-gray-200"><i class="fa-solid fa-pen-to-square"></i></button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex flex-col items-center justify-between gap-4 border-t border-gray-200 bg-white px-4 py-4 text-xs sm:flex-row">
+            <div class="text-gray-500">Menampilkan <strong class="text-gray-800">1 - 3</strong> dari <strong class="text-gray-800">256</strong> data pegawai terdaftar</div>
+            <div class="flex items-center gap-1">
+              <button class="rounded border border-gray-200 px-3 py-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled><i class="fa-solid fa-chevron-left mr-1 text-[10px]"></i> Prev</button>
+              <button class="rounded border border-emerald-600 bg-emerald-600 px-3 py-1.5 font-bold text-white">1</button>
+              <button class="rounded border border-gray-200 px-3 py-1.5 text-gray-700 hover:bg-gray-50">2</button>
+              <button class="rounded border border-gray-200 px-3 py-1.5 text-gray-700 hover:bg-gray-50">3</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- HSE Card -->
+        <section class="grid grid-cols-1">
+          <div class="flex flex-col justify-between rounded-xl bg-gradient-to-br from-slate-900 to-slate-900/90 p-5 text-white shadow-sm">
+            <div>
+              <div class="mb-3 flex items-center justify-between">
+                <span class="rounded border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-400">HSE & MCU Status</span>
+                <i class="fa-solid fa-heart-pulse text-lg text-rose-400"></i>
+              </div>
+              <h4 class="mb-1 text-base font-bold text-white">Tingkat Kepatuhan Medical Check-up (MCU)</h4>
+              <p class="text-xs text-slate-300">Driver Vale & Crew Alat Berat wajib Fit To Work berkala per 6 bulan.</p>
+            </div>
+            <div class="border-t border-slate-700/60 pt-3 mt-4">
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-xs text-slate-300">Status Fit & Valid:</span>
+                <span class="text-sm font-bold text-emerald-400">98.4% (FIT)</span>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>MCU Terjadwal Bulan Ini:</span>
+                <span class="font-semibold text-slate-200">12 Pegawai</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
