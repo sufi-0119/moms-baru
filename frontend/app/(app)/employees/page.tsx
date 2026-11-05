@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
 import { EmployeeModal, EmployeeData } from './EmployeeModal';
-import { X, User, Phone, Mail, MapPin, Briefcase, FileText, CheckCircle2, Award, Calendar, Heart, GraduationCap, Shield } from 'lucide-react';
+import { X, User, Phone, Briefcase, Award, Heart, GraduationCap, Shield } from 'lucide-react';
 
 interface EmployeeItem extends EmployeeData {
   id: string;

@@ -6,15 +6,11 @@ import {
   BellRing,
   Clock,
   CheckCircle2,
-  AlertCircle,
   Search,
   Filter,
   Plus,
   Mail,
-  RotateCcw,
-  Calendar,
   X,
-  FileText
 } from 'lucide-react';
 
 export interface ReminderItem {
@@ -107,7 +103,6 @@ const INITIAL_REMINDERS: ReminderItem[] = [
 
 export default function ReminderWorkflowPage() {
   const [reminders, setReminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
-  const [activeTab, setActiveTab] = useState<'tasks' | 'history'>('tasks');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [filterWorkStatus, setFilterWorkStatus] = useState('ALL');
