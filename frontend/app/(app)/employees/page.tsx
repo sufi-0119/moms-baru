@@ -287,14 +287,14 @@ export default function EmployeesPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Category Tabs */}
             <div className="flex max-w-fit items-center gap-1.5 rounded-lg bg-gray-100/90 p-1">
-              {[
+              {([
                 { id: 'all', label: 'Semua Data', count: employees.length },
                 { id: 'karyawan', label: 'Karyawan Staff & Ops', count: employees.filter(e => !e.position.toLowerCase().includes('driver')).length },
                 { id: 'driver', label: 'Driver Project Vale', count: employees.filter(e => e.position.toLowerCase().includes('driver')).length },
-              ].map((tab) => (
+              ] as const).map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setSelectedTab(tab.id as any)}
+                  onClick={() => setSelectedTab(tab.id)}
                   className={`rounded-md px-4 py-2 text-xs font-bold transition-all ${
                     selectedTab === tab.id
                       ? 'bg-white text-gray-900 shadow-sm'
@@ -589,6 +589,7 @@ export default function EmployeesPage() {
 
       {/* MODAL MULTI-STEP 8 BAGIAN (TAMBAH & EDIT) */}
       <EmployeeModal
+        key={`${modalOpen}-${editingEmployeeData?.id ?? 'new'}-${modalCategory}`}
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setEditingEmployeeData(null); }}
         category={modalCategory}

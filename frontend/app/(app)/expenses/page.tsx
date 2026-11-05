@@ -543,7 +543,7 @@ export default function ExpensesPage() {
                   <label className="block font-semibold text-gray-700">Kategori</label>
                   <select
                     value={editingExpense.category}
-                    onChange={(e) => setEditingExpense({ ...editingExpense, category: e.target.value as any })}
+                    onChange={(e) => setEditingExpense({ ...editingExpense, category: e.target.value as ExpenseItem['category'] })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 focus:border-emerald-600 focus:outline-none"
                   >
                     <option value="Operasional">Operasional</option>
@@ -555,7 +555,7 @@ export default function ExpensesPage() {
                   <label className="block font-semibold text-gray-700">Status Biaya (Perkembangan) *</label>
                   <select
                     value={editingExpense.status}
-                    onChange={(e) => setEditingExpense({ ...editingExpense, status: e.target.value as any })}
+                    onChange={(e) => setEditingExpense({ ...editingExpense, status: e.target.value as ExpenseItem['status'] })}
                     className="mt-1 w-full rounded-xl border border-emerald-600 bg-emerald-50/50 p-2.5 font-bold text-emerald-900 focus:outline-none"
                   >
                     <option value="Pengajuan">Pengajuan</option>

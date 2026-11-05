@@ -481,7 +481,7 @@ export default function ReminderWorkflowPage() {
                   <label className="block text-xs font-bold text-gray-700">Siklus Pengulangan *</label>
                   <select
                     value={newReminder.repeat_cycle}
-                    onChange={(e) => setNewReminder({ ...newReminder, repeat_cycle: e.target.value as any })}
+                    onChange={(e) => setNewReminder({ ...newReminder, repeat_cycle: e.target.value as ReminderItem['repeat_cycle'] })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-xs focus:border-emerald-600 focus:outline-none"
                   >
                     <option value="Tidak berulang">Tidak berulang (H-7 s/d Hari H)</option>

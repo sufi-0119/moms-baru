@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 export interface EmployeeData {
   id?: string;
@@ -121,16 +121,10 @@ export function EmployeeModal({
     accountHolder: 'Ilham Pratama',
   };
 
-  const [formData, setFormData] = useState<EmployeeData>(defaultFormData);
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData({ ...defaultFormData, ...initialData });
-    } else {
-      setFormData(defaultFormData);
-    }
-    setCurrentStep(1);
-  }, [initialData, isOpen]);
+  const [formData, setFormData] = useState<EmployeeData>(() => ({
+    ...defaultFormData,
+    ...(initialData ?? {}),
+  }));
 
   const steps = [
     { num: 1, label: 'Identitas', icon: 'fa-address-card' },
