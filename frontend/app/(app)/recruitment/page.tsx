@@ -1,8 +1,19 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
 import type { RecruitmentCandidate } from '@/lib/demo/types';
+import { useDemoData } from '@/lib/demo/DemoDataProvider';
+import { nextId } from '@/lib/demo/store';
+import {
+  applyStageUpdate,
+  getEligibility,
+  getRecruitmentProgress,
+  ORDERED_STAGE_KEYS,
+} from '@/lib/demo/recruitment';
+import { useToast } from '@/components/ui/Toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Users,
   CheckCircle2,
@@ -14,7 +25,8 @@ import {
   Building,
   HardHat,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Trash2
 } from 'lucide-react';
 
 interface StageInfo {
@@ -39,111 +51,26 @@ const ORDERED_STAGES: StageInfo[] = [
   { key: 'simper', name: '13. SDT Praktik & SIMPER', group: 'Eksternal' },
 ];
 
-export interface RecruitmentCandidatePlaceholder {
-  id: string;
-}
-
-const INITIAL_CANDIDATES: RecruitmentCandidate[] = [
-  {
-    id: 'REC-2025-001',
-    name: 'Ahmad Faisal',
-    phone: '081244556677',
-    recommender: 'Pak Joko (Foreman Hauling)',
-    recommendation: 'Operasional Hauling Vale',
-    current_stage: '13. SDT Praktik & SIMPER',
-    stage_group: 'Eksternal',
-    eligibility_status: 'Layak Kerja',
-    progress_pct: 100,
-    notes: 'Seluruh tahap selesai, lulus pengujian SIMPER PT Vale dengan predikat memuaskan.',
-    created_at: '2025-02-10',
-    stages_data: {
-      berkas: { completed: true, date: '2025-02-10' },
-      interview: { completed: true, date: '2025-02-12' },
-      tpub: { completed: true, date: '2025-02-15' },
-      praktik: { completed: true, date: '2025-02-18' },
-      kontrak: { completed: true, date: '2025-02-20' },
-      bpjs: { completed: true, date: '2025-02-21' },
-      pkwt: { completed: true, date: '2025-02-22' },
-      osc: { completed: true, date: '2025-02-23' },
-      mcu: { completed: true, date: '2025-02-24' },
-      gip_ebs: { completed: true, date: '2025-02-26' },
-      badge: { completed: true, date: '2025-02-27' },
-      sdt_teori: { completed: true, date: '2025-02-28' },
-      simper: { completed: true, date: '2025-03-02' }
-    }
-  },
-  {
-    id: 'REC-2025-002',
-    name: 'Bambang Sutrisno',
-    phone: '082199887766',
-    recommender: 'Irfan Hakim (Supervisor)',
-    recommendation: 'Driver Dump Truck CLM',
-    current_stage: '8. Registrasi OSC',
-    stage_group: 'Internal Cabang',
-    eligibility_status: 'Belum Layak Kerja',
-    progress_pct: 62,
-    notes: 'Sedang menunggu jadwal registrasi OSC dan MCU lanjutan dari RS Inco.',
-    created_at: '2025-02-14',
-    stages_data: {
-      berkas: { completed: true, date: '2025-02-14' },
-      interview: { completed: true, date: '2025-02-16' },
-      tpub: { completed: true, date: '2025-02-18' },
-      praktik: { completed: true, date: '2025-02-21' },
-      kontrak: { completed: true, date: '2025-02-23' },
-      bpjs: { completed: true, date: '2025-02-24' },
-      pkwt: { completed: true, date: '2025-02-25' },
-      osc: { completed: true, date: '2025-02-26' },
-      mcu: { completed: false },
-      gip_ebs: { completed: false },
-      badge: { completed: false },
-      sdt_teori: { completed: false },
-      simper: { completed: false }
-    }
-  },
-  {
-    id: 'REC-2025-003',
-    name: 'Reza Pratama',
-    phone: '085233441122',
-    recommender: 'Andi Baso (HSE Officer)',
-    recommendation: 'Logistics Transport Hub',
-    current_stage: '2. Interview HO & User',
-    stage_group: 'Internal HO',
-    eligibility_status: 'Belum Layak Kerja',
-    progress_pct: 15,
-    notes: 'Dijadwalkan interview user cabang pada tanggal 5 Maret.',
-    created_at: '2025-02-25',
-    stages_data: {
-      berkas: { completed: true, date: '2025-02-25' },
-      interview: { completed: true, date: '2025-02-26' },
-      tpub: { completed: false },
-      praktik: { completed: false },
-      kontrak: { completed: false },
-      bpjs: { completed: false },
-      pkwt: { completed: false },
-      osc: { completed: false },
-      mcu: { completed: false },
-      gip_ebs: { completed: false },
-      badge: { completed: false },
-      sdt_teori: { completed: false },
-      simper: { completed: false }
-    }
-  }
-];
 
 export default function RecruitmentPage() {
-  const [candidates, setCandidates] = useState<RecruitmentCandidate[]>(INITIAL_CANDIDATES);
+  const { state, dispatch } = useDemoData();
+  const { showToast } = useToast();
+  const candidates = state.candidates;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEligibility, setFilterEligibility] = useState<string>('ALL');
   const [filterStageGroup, setFilterStageGroup] = useState<string>('ALL');
   const [selectedCandidate, setSelectedCandidate] = useState<RecruitmentCandidate | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newCandidate, setNewCandidate] = useState({
+  const [editingCandidate, setEditingCandidate] = useState<RecruitmentCandidate | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RecruitmentCandidate | null>(null);
+  const emptyForm = {
     name: '',
     phone: '',
     recommender: '',
     recommendation: 'Operasional Hauling Vale',
     notes: ''
-  });
+  };
+  const [newCandidate, setNewCandidate] = useState(emptyForm);
 
   const filteredCandidates = candidates.filter((c) => {
     const matchSearch =
@@ -191,47 +118,63 @@ export default function RecruitmentPage() {
    * Jika targetIndex adalah tahapan terakhir (13/13), maka status kelayakan otomatis menjadi 'Layak Kerja'.
    */
   const handleSelectStage = (candidateId: string, targetIndex: number) => {
-    setCandidates(prev => prev.map(c => {
-      if (c.id !== candidateId) return c;
+    const candidate = candidates.find((item) => item.id === candidateId);
+    if (!candidate) return;
 
-      const updatedStages = { ...c.stages_data };
-      ORDERED_STAGES.forEach((st, idx) => {
-        if (idx <= targetIndex) {
-          updatedStages[st.key] = { completed: true, date: updatedStages[st.key]?.date || new Date().toISOString().split('T')[0] };
-        } else {
-          updatedStages[st.key] = { completed: false };
-        }
-      });
+    const stages = { ...candidate.stages_data };
+    ORDERED_STAGE_KEYS.forEach((key, index) => {
+      stages[key] =
+        index <= targetIndex
+          ? { completed: true, date: stages[key]?.date ?? new Date().toISOString().split('T')[0] }
+          : { completed: false };
+    });
 
-      const totalSteps = ORDERED_STAGES.length;
-      const completedSteps = targetIndex + 1;
-      const pct = Math.round((completedSteps / totalSteps) * 100);
-      const isAllDone = completedSteps === totalSteps;
+    const progress = getRecruitmentProgress(stages);
+    const isAllDone = progress >= 100;
+    const activeStageObj = ORDERED_STAGES[targetIndex];
 
-      const activeStageObj = ORDERED_STAGES[targetIndex];
+    const updatedCandidate: RecruitmentCandidate = {
+      ...candidate,
+      stages_data: stages,
+      progress_pct: progress,
+      current_stage: isAllDone ? '13. SDT Praktik & SIMPER (Selesai)' : activeStageObj.name,
+      stage_group: activeStageObj.group,
+      eligibility_status: getEligibility(progress),
+    };
 
-      const updatedCandidate: RecruitmentCandidate = {
-        ...c,
-        stages_data: updatedStages,
-        progress_pct: pct,
-        current_stage: isAllDone ? '13. SDT Praktik & SIMPER (Selesai)' : activeStageObj.name,
-        stage_group: activeStageObj.group,
-        eligibility_status: isAllDone ? 'Layak Kerja' : 'Belum Layak Kerja',
-      };
+    dispatch({ type: 'candidate/update', candidate: updatedCandidate });
 
-      if (selectedCandidate && selectedCandidate.id === candidateId) {
-        setSelectedCandidate(updatedCandidate);
-      }
-      return updatedCandidate;
-    }));
+    if (selectedCandidate && selectedCandidate.id === candidateId) {
+      setSelectedCandidate(updatedCandidate);
+    }
+    showToast(`Progres ${candidate.name} diperbarui menjadi ${progress}%.`, 'info');
   };
 
   const handleAddCandidate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCandidate.name.trim()) return;
 
-    const newId = `REC-2025-00${candidates.length + 1}`;
-    const created: RecruitmentCandidate = {
+    if (editingCandidate) {
+      dispatch({
+        type: 'candidate/update',
+        candidate: {
+          ...editingCandidate,
+          name: newCandidate.name,
+          phone: newCandidate.phone || '-',
+          recommender: newCandidate.recommender || '-',
+          recommendation: newCandidate.recommendation,
+          notes: newCandidate.notes || editingCandidate.notes,
+        },
+      });
+      showToast(`Data kandidat ${newCandidate.name} diperbarui.`);
+      setShowAddModal(false);
+      setEditingCandidate(null);
+      setNewCandidate(emptyForm);
+      return;
+    }
+
+    const newId = nextId('REC', candidates.map((item) => item.id));
+    const base: RecruitmentCandidate = {
       id: newId,
       name: newCandidate.name,
       phone: newCandidate.phone || '-',
@@ -240,11 +183,11 @@ export default function RecruitmentPage() {
       current_stage: '1. Seleksi Berkas',
       stage_group: 'Internal HO',
       eligibility_status: 'Belum Layak Kerja',
-      progress_pct: 8,
+      progress_pct: 0,
       notes: newCandidate.notes || 'Kandidat baru terdaftar.',
       created_at: new Date().toISOString().split('T')[0],
       stages_data: {
-        berkas: { completed: true, date: new Date().toISOString().split('T')[0] },
+        berkas: { completed: false },
         interview: { completed: false },
         tpub: { completed: false },
         praktik: { completed: false },
@@ -259,10 +202,19 @@ export default function RecruitmentPage() {
         simper: { completed: false }
       }
     };
+    const created = applyStageUpdate(base, 'berkas', true);
 
-    setCandidates([created, ...candidates]);
+    dispatch({ type: 'candidate/add', candidate: created });
+    showToast(`Kandidat ${created.name} berhasil ditambahkan.`);
     setShowAddModal(false);
-    setNewCandidate({ name: '', phone: '', recommender: '', recommendation: 'Operasional Hauling Vale', notes: '' });
+    setNewCandidate(emptyForm);
+  };
+
+  const handleDeleteCandidate = () => {
+    if (!deleteTarget) return;
+    dispatch({ type: 'candidate/delete', id: deleteTarget.id });
+    showToast(`Kandidat ${deleteTarget.name} dihapus dari demo.`, 'info');
+    setDeleteTarget(null);
   };
 
   return (
@@ -385,7 +337,11 @@ export default function RecruitmentPage() {
             </select>
 
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                setEditingCandidate(null);
+                setNewCandidate(emptyForm);
+                setShowAddModal(true);
+              }}
               className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700"
             >
               <Plus className="h-4 w-4" />
@@ -466,20 +422,62 @@ export default function RecruitmentPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-center">
-                      <button
-                        onClick={() => setSelectedCandidate(c)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100"
-                      >
-                        <Eye className="h-3.5 w-3.5" /> Detail &amp; Update Tahapan
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => setSelectedCandidate(c)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                        >
+                          <Eye className="h-3.5 w-3.5" /> Detail &amp; Update Tahapan
+                        </button>
+                        <button
+                          aria-label={`Edit kandidat ${c.name}`}
+                          onClick={() => {
+                            setEditingCandidate(c);
+                            setNewCandidate({
+                              name: c.name,
+                              phone: c.phone,
+                              recommender: c.recommender,
+                              recommendation: c.recommendation,
+                              notes: c.notes,
+                            });
+                            setShowAddModal(true);
+                          }}
+                          className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100"
+                        >
+                          <i className="fa-solid fa-pen-to-square text-xs" />
+                        </button>
+                        <button
+                          aria-label={`Hapus kandidat ${c.name}`}
+                          onClick={() => setDeleteTarget(c)}
+                          className="grid h-8 w-8 place-items-center rounded-lg bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {filteredCandidates.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                title="Tidak ada kandidat yang cocok"
+                description="Ubah kata kunci, status kelayakan, atau grup tahapan untuk melihat kandidat demo."
+              />
+            </div>
+          ) : null}
         </section>
       </div>
+
+      <ConfirmDialog
+        description={deleteTarget ? `Kandidat ${deleteTarget.name} akan dihapus dari data demo. Data produksi tidak terpengaruh.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteCandidate}
+        open={deleteTarget !== null}
+        title="Hapus kandidat?"
+      />
 
       {/* DETAIL & SEKUENS EDIT TAHAPAN MODAL */}
       {selectedCandidate && (
@@ -551,7 +549,7 @@ export default function RecruitmentPage() {
                         >
                           <span>{st.name}</span>
                           <span className={isDone ? 'text-emerald-700 font-bold' : 'text-gray-400'}>
-                            {isDone ? '✓ Lolos' : 'Pending'}
+                            {isDone ? 'âœ“ Lolos' : 'Pending'}
                           </span>
                         </button>
                       );
@@ -580,7 +578,7 @@ export default function RecruitmentPage() {
                         >
                           <span>{st.name}</span>
                           <span className={isDone ? 'text-emerald-700 font-bold' : 'text-gray-400'}>
-                            {isDone ? '✓ Lolos' : 'Pending'}
+                            {isDone ? 'âœ“ Lolos' : 'Pending'}
                           </span>
                         </button>
                       );
@@ -609,7 +607,7 @@ export default function RecruitmentPage() {
                         >
                           <span>{st.name}</span>
                           <span className={isDone ? 'text-emerald-700 font-bold' : 'text-gray-400'}>
-                            {isDone ? '✓ Lolos' : 'Pending'}
+                            {isDone ? 'âœ“ Lolos' : 'Pending'}
                           </span>
                         </button>
                       );
@@ -636,7 +634,9 @@ export default function RecruitmentPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-base font-bold text-gray-900">Tambah Kandidat Rekrutmen Driver</h3>
+              <h3 className="text-base font-bold text-gray-900">
+                {editingCandidate ? 'Edit Kandidat Rekrutmen Driver' : 'Tambah Kandidat Rekrutmen Driver'}
+              </h3>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
