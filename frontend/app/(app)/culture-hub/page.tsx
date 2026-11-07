@@ -223,6 +223,7 @@ export default function CultureHubPage() {
             </div>
 
             <select
+              aria-label="Status Publikasi"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-600 focus:outline-none"
