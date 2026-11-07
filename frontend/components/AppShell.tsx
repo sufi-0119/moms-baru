@@ -1,9 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Search, Bell, ChevronDown } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Search, Bell, ChevronDown, LogOut } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useDemoData } from '@/lib/demo/DemoDataProvider';
+import { DemoBanner } from '@/components/demo/DemoBanner';
 
 const KALLA_LOGO =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuA7_nxc3iXJc1_XyjhhynevdSzFDX9tplTW7XjyxFAn_OFuSGB0sD6x_s4Zcdo7lcFNrqqdNUMGvvz6-wjc1k_jbguVjxiYTfTdxFFmmB3XLHCcB-E2OCttycP9hGpL_5DhhSSaOWAB0Hl9VM3fJCQjS4RXdz2OnAsvhdJvkpt5PU-C-bg7O543tOWqbrpCFzLc0PtJn431d_XEEbreLstPcbfzTWQggBpfUv9dfUNXTUR9Ni2GY2GO';
@@ -18,20 +21,17 @@ const NAV_ITEMS = [
     href: '/employees',
     label: 'Karyawan & Driver',
     icon: 'fa-users-gear',
-    badge: '256',
   },
   {
     href: '/reminder-workflow',
     label: 'Reminder Workflow',
     icon: 'fa-bell-concierge',
-    badge: '28',
     badgeTone: 'warning',
   },
   {
     href: '/recruitment',
     label: 'Rekrutmen Driver',
     icon: 'fa-user-check',
-    badge: '12',
   },
   {
     href: '/expenses',
@@ -47,6 +47,24 @@ const NAV_ITEMS = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { state } = useDemoData();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const badges: Record<string, number | undefined> = {
+    '/employees': state.employees.length,
+    '/reminder-workflow': state.reminders.filter((item) => item.reminder_status === 'Aktif').length,
+    '/recruitment': state.candidates.length,
+  };
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      router.replace('/');
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-canvas text-forest-950">
@@ -91,9 +109,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       <i className={`fa-solid ${item.icon} w-5 text-center text-white`} />
                       <span className="whitespace-nowrap">{item.label}</span>
                     </div>
-                    {item.badge ? (
+                    {badges[item.href] ? (
                       <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold">
-                        {item.badge}
+                        {badges[item.href]}
                       </span>
                     ) : null}
                   </Link>
@@ -110,7 +128,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     <i className={`fa-solid ${item.icon} w-5 text-center text-slate-400`} />
                     <span className="whitespace-nowrap">{item.label}</span>
                   </div>
-                  {item.badge ? (
+                  {badges[item.href] ? (
                     <span
                       className={
                         item.badgeTone === 'warning'
@@ -118,7 +136,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           : 'shrink-0 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-300'
                       }
                     >
-                      {item.badge}
+                      {badges[item.href]}
                     </span>
                   ) : null}
                 </Link>
@@ -130,19 +148,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Footer / Logout */}
         <div className="border-t border-slate-800/80 bg-[#0E121A] p-4">
           <div className="mb-3 flex items-center justify-between px-1 text-xs text-slate-400" />
-          <Link
-            href="/"
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700/60 px-3 py-2 text-xs font-semibold text-slate-300 transition-all hover:border-rose-800 hover:bg-rose-950/40 hover:text-white"
+          <button
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700/60 px-3 py-2 text-xs font-semibold text-slate-300 transition-all hover:border-rose-800 hover:bg-rose-950/40 hover:text-white disabled:opacity-60"
+            disabled={signingOut}
+            onClick={handleSignOut}
+            type="button"
           >
-            <i className="fa-solid fa-arrow-right-from-bracket text-rose-400" />
-            <span>Keluar Sistem</span>
-          </Link>
+            <LogOut className="h-3.5 w-3.5 text-rose-400" />
+            <span>{signingOut ? 'Keluar...' : 'Keluar Sistem'}</span>
+          </button>
         </div>
       </aside>
 
       {/* MAIN CONTENT CONTAINER */}
       <div className="flex-1 pl-64">
         <div className="mx-auto flex min-h-screen max-w-[1500px] flex-col px-7 pb-8 pt-6">
+          <DemoBanner />
           {children}
         </div>
       </div>
