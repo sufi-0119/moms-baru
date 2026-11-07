@@ -20,6 +20,27 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Demo quality gate
+
+Run these three checks before demoing or shipping. All three must pass:
+
+```bash
+npx tsc --noEmit
+npm run lint
+npm run build
+```
+
+## Demo scope and placeholder routes
+
+This build is a UI demo backed by `DemoDataProvider` (seed data in `lib/demo`, persisted in
+`localStorage`). Supabase is used for authentication only; no production data is read or written.
+
+The following routes are outside the demo scope and redirect automatically:
+
+- `/reminders` redirects to `/reminder-workflow`.
+- `/audit-log`, `/dokumen-sertifikasi`, `/manpower-report`, `/monitoring-sk`, and `/pengaturan`
+  redirect to `/dashboard`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

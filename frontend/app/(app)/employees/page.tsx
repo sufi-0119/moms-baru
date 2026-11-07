@@ -1,179 +1,28 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
-import { EmployeeModal, EmployeeData } from './EmployeeModal';
-import { X, User, Phone, Mail, MapPin, Briefcase, FileText, CheckCircle2, Award, Calendar, Heart, GraduationCap, Shield } from 'lucide-react';
-
-interface EmployeeItem extends EmployeeData {
-  id: string;
-  initials: string;
-  active: boolean;
-  urgent: boolean;
-  remaining: string;
-}
-
-const INITIAL_EMPLOYEES: EmployeeItem[] = [
-  {
-    id: 'KL-20220814',
-    nikCompany: 'KL-20220814',
-    nikKtp: '7312019950001',
-    noKk: '7312019950002',
-    npwp: '12.345.678.9-001.000',
-    bpjsKesehatan: '000123456789',
-    bpjsKetenagakerjaan: '1900123456',
-    initials: 'IP',
-    name: 'Ilham Pratama, S.T.',
-    nickname: 'Ilham',
-    birthPlace: 'Makassar',
-    birthDate: '1992-08-14',
-    gender: 'Laki-laki',
-    religion: 'Islam',
-    blood: 'O+',
-    addressKtp: 'Jl. Urip Sumoharjo No. 45, Makassar',
-    addressDomisili: 'Mess Kalla Transport, Sorowako, Luwu Timur',
-    emailPersonal: 'ilham.pratama@gmail.com',
-    emailKalla: 'ilham.pratama@kalla.co.id',
-    emailOutlook: 'ilham.pratama@outlook.com',
-    phone: '081244556677',
-    position: 'Fleet Maintenance Supervisor',
-    jobLevel: 'Supervisor / Foreman',
-    site: 'Project Vale Sorowako',
-    contractStatus: 'PKWT-2',
-    joinDate: '2022-08-14',
-    skNumber: '088/HR-VALE/2023',
-    skDate: '2023-01-15',
-    contractStart: '2024-03-01',
-    contractEnd: '2025-02-28',
-    remaining: '11 Hari Lagi',
-    maritalStatus: 'Menikah',
-    spouseName: 'Nurhaliza, S.Pd',
-    childrenCount: 2,
-    motherName: 'Hj. Aminah',
-    emergencyName: 'Andi Pratama (Adik)',
-    emergencyPhone: '081299887766',
-    educationLevel: 'Sarjana (S1 / D4)',
-    schoolName: 'Universitas Hasanuddin (UNHAS)',
-    major: 'Teknik Mesin',
-    graduationYear: '2015',
-    uniformSize: 'XL',
-    shoeSize: '43',
-    mcuStatus: 'Fit To Work (Valid s/d Des 2025)',
-    bankAccount: '123-00-9876543-2',
-    bankName: 'Bank Mandiri',
-    accountHolder: 'Ilham Pratama',
-    active: true,
-    urgent: true,
-  },
-  {
-    id: 'DR-20210045',
-    nikCompany: 'DR-20210045',
-    nikKtp: '7324021990004',
-    noKk: '7324021990005',
-    npwp: '22.345.678.9-002.000',
-    bpjsKesehatan: '000223456789',
-    bpjsKetenagakerjaan: '1900223456',
-    initials: 'AM',
-    name: 'Andi Muhammad Reza',
-    nickname: 'Reza',
-    birthPlace: 'Luwu Timur',
-    birthDate: '1990-04-12',
-    gender: 'Laki-laki',
-    religion: 'Islam',
-    blood: 'A+',
-    addressKtp: 'Desa Magani, Kec. Nuha, Kab. Luwu Timur',
-    addressDomisili: 'Desa Magani, Sorowako',
-    emailPersonal: 'reza.hauling@gmail.com',
-    emailKalla: 'reza.hauling@kalla.co.id',
-    position: 'Heavy Dump Truck Operator (HD785)',
-    jobLevel: 'Operator / Driver',
-    site: 'Project Vale Sorowako',
-    contractStatus: 'Kartap (Tetap)',
-    joinDate: '2021-05-10',
-    skNumber: '014/DIR-KALLA/2021',
-    skDate: '2021-05-10',
-    contractStart: '2021-05-10',
-    contractEnd: '2042-05-10',
-    remaining: 'Tetap (Permanen)',
-    maritalStatus: 'Menikah',
-    spouseName: 'Ratnasari',
-    childrenCount: 3,
-    motherName: 'Maryam',
-    emergencyName: 'Ratnasari (Istri)',
-    emergencyPhone: '082188776655',
-    educationLevel: 'SMA / SMK Sederajat',
-    schoolName: 'SMKN 1 Malili',
-    major: 'Teknik Kendaraan Ringan',
-    graduationYear: '2008',
-    uniformSize: 'L',
-    shoeSize: '42',
-    mcuStatus: 'Fit To Work (Valid)',
-    bankAccount: '152-00-1122334-4',
-    bankName: 'Bank Mandiri',
-    accountHolder: 'Andi Muhammad Reza',
-    phone: '082199887766',
-    active: true,
-    urgent: false,
-  },
-  {
-    id: 'DR-20230198',
-    nikCompany: 'DR-20230198',
-    nikKtp: '7403011993008',
-    noKk: '7403011993009',
-    npwp: '33.345.678.9-003.000',
-    bpjsKesehatan: '000323456789',
-    bpjsKetenagakerjaan: '1900323456',
-    initials: 'BS',
-    name: 'Budi Santoso',
-    nickname: 'Budi',
-    birthPlace: 'Kolaka',
-    birthDate: '1993-11-20',
-    gender: 'Laki-laki',
-    religion: 'Islam',
-    blood: 'B+',
-    addressKtp: 'Jl. Pahlawan No. 18, Pomalaa, Kolaka',
-    addressDomisili: 'Mess Logistik Site Pomalaa',
-    emailPersonal: 'budi.santoso@gmail.com',
-    emailKalla: 'budi.santoso@kalla.co.id',
-    position: 'Fuel & Water Truck Driver',
-    jobLevel: 'Operator / Driver',
-    site: 'Regional Kendari & Kolaka',
-    contractStatus: 'PKWT-1',
-    joinDate: '2023-10-01',
-    skNumber: '112/HR-KDR/2024',
-    skDate: '2024-01-02',
-    contractStart: '2024-10-01',
-    contractEnd: '2025-09-30',
-    remaining: '7 Bulan Lagi',
-    maritalStatus: 'Menikah',
-    spouseName: 'Dewi Lestari',
-    childrenCount: 1,
-    motherName: 'Kartini',
-    emergencyName: 'Dewi Lestari (Istri)',
-    emergencyPhone: '085299881122',
-    educationLevel: 'SMA / SMK Sederajat',
-    schoolName: 'SMK Negeri 2 Kolaka',
-    major: 'Teknik Mesin Otomotif',
-    graduationYear: '2011',
-    uniformSize: 'M',
-    shoeSize: '41',
-    mcuStatus: 'Fit To Work (Valid)',
-    bankAccount: '112-00-5544332-1',
-    bankName: 'Bank Mandiri',
-    accountHolder: 'Budi Santoso',
-    phone: '085233441122',
-    active: true,
-    urgent: false,
-  }
-];
+import { EmployeeModal } from './EmployeeModal';
+import { useDemoData } from '@/lib/demo/DemoDataProvider';
+import { nextId } from '@/lib/demo/store';
+import { toEmployeesCsv } from '@/lib/demo/export';
+import type { EmployeeData, EmployeeRecord } from '@/lib/demo/types';
+import { useToast } from '@/components/ui/Toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { X, User, Phone, Briefcase, Award, Heart, GraduationCap, Shield, Search, Trash2 } from 'lucide-react';
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<EmployeeItem[]>(INITIAL_EMPLOYEES);
+  const { state, dispatch } = useDemoData();
+  const { showToast } = useToast();
+  const employees = state.employees;
   const [modalOpen, setModalOpen] = useState(false);
   const [modalCategory, setModalCategory] = useState<'Driver' | 'Karyawan'>('Karyawan');
   const [selectedTab, setSelectedTab] = useState<'all' | 'karyawan' | 'driver'>('all');
-  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeItem | null>(null);
-  const [editingEmployeeData, setEditingEmployeeData] = useState<EmployeeItem | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeRecord | null>(null);
+  const [editingEmployeeData, setEditingEmployeeData] = useState<EmployeeRecord | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<EmployeeRecord | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const openAddModal = (category: 'Driver' | 'Karyawan') => {
     setEditingEmployeeData(null);
@@ -181,76 +30,81 @@ export default function EmployeesPage() {
     setModalOpen(true);
   };
 
-  const openEditModal = (emp: EmployeeItem) => {
+  const openEditModal = (emp: EmployeeRecord) => {
     setEditingEmployeeData(emp);
-    setModalCategory(emp.jobLevel.toLowerCase().includes('driver') || emp.position.toLowerCase().includes('driver') ? 'Driver' : 'Karyawan');
+    setModalCategory(emp.category);
     setModalOpen(true);
   };
 
   const handleSaveModalData = (data: EmployeeData) => {
     if (editingEmployeeData) {
-      // Update existing
-      setEmployees(prev => prev.map(item => {
-        if (item.id === editingEmployeeData.id) {
-          return {
-            ...item,
-            ...data,
-            name: data.name,
-            position: data.position,
-            site: data.site,
-            contractStatus: data.contractStatus,
-            phone: data.phone,
-          };
-        }
-        return item;
-      }));
-      alert(`Data pegawai ${data.name} berhasil diperbarui!`);
+      dispatch({
+        type: 'employee/update',
+        employee: {
+          ...editingEmployeeData,
+          ...data,
+          id: editingEmployeeData.id,
+        } as EmployeeRecord,
+      });
+      showToast(`Data pegawai ${data.name} berhasil diperbarui.`);
     } else {
-      // Add new
-      const newId = (modalCategory === 'Driver' ? 'DR-' : 'KL-') + new Date().getFullYear() + String(Math.floor(Math.random() * 9000) + 1000);
-      const initials = data.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-      const newEmp: EmployeeItem = {
+      const id = nextId(modalCategory === 'Driver' ? 'DRV' : 'EMP', employees.map((item) => item.id));
+      const initials = data.name
+        .split(' ')
+        .map((part) => part[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+      const newEmployee: EmployeeRecord = {
         ...data,
-        id: newId,
-        nikCompany: data.nikCompany || newId,
+        id,
+        nikCompany: data.nikCompany || id,
+        category: modalCategory,
         initials: initials || 'PE',
         active: true,
         urgent: false,
         remaining: '12 Bulan Lagi',
       };
-      setEmployees([newEmp, ...employees]);
-      alert(`Pegawai baru ${data.name} berhasil ditambahkan!`);
+      dispatch({ type: 'employee/add', employee: newEmployee });
+      showToast(`Pegawai baru ${data.name} berhasil ditambahkan.`);
     }
+
+    setModalOpen(false);
+    setEditingEmployeeData(null);
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    dispatch({ type: 'employee/delete', id: deleteTarget.id });
+    showToast(`Data ${deleteTarget.name} dihapus dari demo.`, 'info');
+    setDeleteTarget(null);
   };
 
   const handleExportExcel = () => {
-    const headers = ['ID', 'NIK KTP', 'Nama Lengkap', 'Jabatan', 'Site', 'Status Kontrak', 'No HP', 'Email', 'Hasil MCU'];
-    const rows = filteredList.map(e => [
-      e.id,
-      e.nikKtp,
-      `"${e.name}"`,
-      `"${e.position}"`,
-      `"${e.site}"`,
-      e.contractStatus,
-      `"${e.phone}"`,
-      e.emailPersonal,
-      `"${e.mcuStatus}"`
-    ]);
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csv = toEmployeesCsv(filteredList);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `data_karyawan_driver_${new Date().toISOString().split('T')[0]}.csv`);
+    link.href = url;
+    link.download = `data_karyawan_driver_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast(`${filteredList.length} baris diekspor ke CSV.`);
   };
 
-  const filteredList = employees.filter(emp => {
-    const isDriver = emp.jobLevel.toLowerCase().includes('driver') || emp.position.toLowerCase().includes('driver');
-    if (selectedTab === 'karyawan') return !isDriver;
-    if (selectedTab === 'driver') return isDriver;
-    return true;
+  const filteredList = employees.filter((emp) => {
+    const normalized = searchQuery.trim().toLowerCase();
+    if (selectedTab === 'karyawan' && emp.category !== 'Karyawan') return false;
+    if (selectedTab === 'driver' && emp.category !== 'Driver') return false;
+    if (!normalized) return true;
+    return (
+      emp.name.toLowerCase().includes(normalized) ||
+      emp.nikKtp.toLowerCase().includes(normalized) ||
+      emp.nikCompany.toLowerCase().includes(normalized) ||
+      emp.position.toLowerCase().includes(normalized)
+    );
   });
 
   return (
@@ -287,14 +141,14 @@ export default function EmployeesPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Category Tabs */}
             <div className="flex max-w-fit items-center gap-1.5 rounded-lg bg-gray-100/90 p-1">
-              {[
+              {([
                 { id: 'all', label: 'Semua Data', count: employees.length },
-                { id: 'karyawan', label: 'Karyawan Staff & Ops', count: employees.filter(e => !e.position.toLowerCase().includes('driver')).length },
-                { id: 'driver', label: 'Driver Project Vale', count: employees.filter(e => e.position.toLowerCase().includes('driver')).length },
-              ].map((tab) => (
+                { id: 'karyawan', label: 'Karyawan Staff & Ops', count: employees.filter(e => e.category === 'Karyawan').length },
+                { id: 'driver', label: 'Driver Project Vale', count: employees.filter(e => e.category === 'Driver').length },
+              ] as const).map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setSelectedTab(tab.id as any)}
+                  onClick={() => setSelectedTab(tab.id)}
                   className={`rounded-md px-4 py-2 text-xs font-bold transition-all ${
                     selectedTab === tab.id
                       ? 'bg-white text-gray-900 shadow-sm'
@@ -307,7 +161,18 @@ export default function EmployeesPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="relative">
+                <span className="sr-only">Cari karyawan atau driver</span>
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                <input
+                  className="h-10 w-full min-w-[200px] rounded-lg border border-gray-300 pl-9 pr-3 text-xs focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Cari nama, NIK, jabatan..."
+                  type="search"
+                  value={searchQuery}
+                />
+              </label>
               <button
                 onClick={handleExportExcel}
                 className="flex items-center gap-2 rounded-lg border border-gray-300 px-3.5 py-2.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
@@ -371,7 +236,7 @@ export default function EmployeesPage() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-bold text-[10px] ${
-                          emp.position.toLowerCase().includes('driver')
+                          emp.category === 'Driver'
                             ? 'border-amber-300 bg-amber-100 text-amber-900'
                             : 'border-emerald-300 bg-emerald-100 text-emerald-800'
                         }`}
@@ -429,6 +294,13 @@ export default function EmployeesPage() {
                       >
                         <i className="fa-solid fa-pen-to-square" />
                       </button>
+                      <button
+                        title="Hapus data personil"
+                        onClick={() => setDeleteTarget(emp)}
+                        className="flex h-7 w-7 items-center justify-center rounded bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100 hover:text-rose-700"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -436,6 +308,14 @@ export default function EmployeesPage() {
             </tbody>
           </table>
         </div>
+        {filteredList.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              title="Tidak ada data yang cocok"
+              description="Ubah kata kunci pencarian atau pilih tab kategori lain untuk melihat data demo."
+            />
+          </div>
+        ) : null}
       </section>
 
       {/* MODAL VIEW DETAIL DATA DIRI LENGKAP (8 BAGIAN) */}
@@ -587,8 +467,17 @@ export default function EmployeesPage() {
         </div>
       )}
 
+      <ConfirmDialog
+        description={deleteTarget ? `Data ${deleteTarget.name} akan dihapus dari data demo. Tindakan ini tidak memengaruhi data produksi.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        open={deleteTarget !== null}
+        title="Hapus data personil?"
+      />
+
       {/* MODAL MULTI-STEP 8 BAGIAN (TAMBAH & EDIT) */}
       <EmployeeModal
+        key={`${modalOpen}-${editingEmployeeData?.id ?? 'new'}-${modalCategory}`}
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setEditingEmployeeData(null); }}
         category={modalCategory}

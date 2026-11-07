@@ -1,128 +1,48 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
+import type { ReminderItem } from '@/lib/demo/types';
+import { useDemoData } from '@/lib/demo/DemoDataProvider';
+import { nextId } from '@/lib/demo/store';
+import { completeReminder, getReminderStage } from '@/lib/demo/reminders';
+import { useToast } from '@/components/ui/Toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   BellRing,
   Clock,
   CheckCircle2,
-  AlertCircle,
   Search,
   Filter,
   Plus,
   Mail,
-  RotateCcw,
-  Calendar,
   X,
-  FileText
+  Trash2,
 } from 'lucide-react';
 
-export interface ReminderItem {
-  id: string;
-  task_name: string;
-  category: 'Driver' | 'BPJS' | 'Catering' | 'Employee' | 'Facility';
-  deadline: string;
-  stage: 'H-7' | 'H-3' | 'H-1' | 'Hari H';
-  repeat_cycle: 'Tidak berulang' | 'Monthly' | 'Quarterly' | 'Yearly';
-  pic: string;
-  recipient_email: string;
-  notes: string;
-  work_status: 'Belum Selesai' | 'Selesai';
-  reminder_status: 'Aktif' | 'Selesai';
-  last_sent: string;
-}
-
-const INITIAL_REMINDERS: ReminderItem[] = [
-  {
-    id: 'REM-2025-001',
-    task_name: 'Perpanjangan SIM BII Umum Driver Hauling Vale',
-    category: 'Driver',
-    deadline: '2025-03-02',
-    stage: 'Hari H',
-    repeat_cycle: 'Yearly',
-    pic: 'Irfan Hakim',
-    recipient_email: 'irfan.hakim@kalla.co.id',
-    notes: 'Wajib verifikasi kelayakan fisik & sertifikat safety SIM B2 Pertambangan',
-    work_status: 'Belum Selesai',
-    reminder_status: 'Aktif',
-    last_sent: 'Hari H terkirim (08:15 WITA)'
-  },
-  {
-    id: 'REM-2025-002',
-    task_name: 'Pembayaran Iuran BPJS Ketenagakerjaan Tim Driver',
-    category: 'BPJS',
-    deadline: '2025-03-05',
-    stage: 'H-3',
-    repeat_cycle: 'Monthly',
-    pic: 'Siti Rahmawati',
-    recipient_email: 'siti.rahma@kalla.co.id',
-    notes: 'Rekap 256 data NIK & premi asuransi wajib disinkronkan ke bank payroll',
-    work_status: 'Belum Selesai',
-    reminder_status: 'Aktif',
-    last_sent: 'H-3 terkirim (09:00 WITA)'
-  },
-  {
-    id: 'REM-2025-003',
-    task_name: 'Verifikasi Higienitas Katering Mess Site Sorowako',
-    category: 'Catering',
-    deadline: '2025-03-03',
-    stage: 'H-1',
-    repeat_cycle: 'Monthly',
-    pic: 'Nur Fadillah',
-    recipient_email: 'nur.fadillah@kalla.co.id',
-    notes: 'Inspeksi standar nutrisi dan katering shift malam vendor PT Boga Nusantara',
-    work_status: 'Belum Selesai',
-    reminder_status: 'Aktif',
-    last_sent: 'H-1 terkirim (06:00 WITA)'
-  },
-  {
-    id: 'REM-2025-004',
-    task_name: 'Audit APD & Seragam Lapangan Driver Project',
-    category: 'Driver',
-    deadline: '2025-02-28',
-    stage: 'H-7',
-    repeat_cycle: 'Quarterly',
-    pic: 'Andi Baso',
-    recipient_email: 'andi.baso@kalla.co.id',
-    notes: 'Sudah diselesaikan sebelum Hari H. Seluruh reminder otomatis dihentikan.',
-    work_status: 'Selesai',
-    reminder_status: 'Selesai',
-    last_sent: 'Dihentikan (Pekerjaan Selesai)'
-  },
-  {
-    id: 'REM-2025-005',
-    task_name: 'Kalibrasi Timbangan & Uji Emisi Dump Truck Tambang',
-    category: 'Facility',
-    deadline: '2025-03-09',
-    stage: 'H-7',
-    repeat_cycle: 'Tidak berulang',
-    pic: 'Nur Fadillah',
-    recipient_email: 'nur.fadillah@kalla.co.id',
-    notes: 'Disposisi teknisi dinas meteorologi untuk sertifikat laik jalan',
-    work_status: 'Belum Selesai',
-    reminder_status: 'Aktif',
-    last_sent: 'H-7 terkirim (08:30 WITA)'
-  }
-];
-
 export default function ReminderWorkflowPage() {
-  const [reminders, setReminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
-  const [activeTab, setActiveTab] = useState<'tasks' | 'history'>('tasks');
+  const { state, dispatch } = useDemoData();
+  const { showToast } = useToast();
+  const reminders = state.reminders;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [filterWorkStatus, setFilterWorkStatus] = useState('ALL');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<ReminderItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ReminderItem | null>(null);
 
   // New Reminder State
-  const [newReminder, setNewReminder] = useState({
+  const emptyReminder = {
     task_name: '',
     deadline: '',
     pic: '',
     recipient_email: '',
     notes: '',
     category: 'Driver' as ReminderItem['category'],
-    repeat_cycle: 'Tidak berulang' as ReminderItem['repeat_cycle']
-  });
+    repeat_cycle: 'Tidak berulang' as ReminderItem['repeat_cycle'],
+  };
+  const [newReminder, setNewReminder] = useState(emptyReminder);
 
   const filteredReminders = reminders.filter((r) => {
     const matchSearch =
@@ -139,18 +59,39 @@ export default function ReminderWorkflowPage() {
   const activeTasks = totalTasks - completedTasks;
 
   const handleMarkComplete = (id: string) => {
-    setReminders((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              work_status: 'Selesai',
-              reminder_status: 'Selesai',
-              last_sent: 'Dihentikan (Pekerjaan Selesai)'
-            }
-          : r
-      )
-    );
+    const reminder = reminders.find((item) => item.id === id);
+    if (!reminder) return;
+
+    if (reminder.work_status === 'Selesai') {
+      dispatch({
+        type: 'reminder/update',
+        reminder: {
+          ...reminder,
+          work_status: 'Belum Selesai',
+          reminder_status: 'Aktif',
+          last_sent: 'Pengingat diaktifkan kembali',
+        },
+      });
+      showToast(`Reminder ${reminder.task_name} diaktifkan kembali.`, 'info');
+      return;
+    }
+
+    const { completed, next } = completeReminder(reminder, new Date());
+    dispatch({ type: 'reminder/update', reminder: completed });
+
+    if (next) {
+      dispatch({ type: 'reminder/add', reminder: next });
+      showToast(`Reminder selesai. Jadwal berikutnya dibuat: ${next.deadline}.`);
+    } else {
+      showToast(`Reminder ${reminder.task_name} ditandai selesai.`);
+    }
+  };
+
+  const handleDeleteReminder = () => {
+    if (!deleteTarget) return;
+    dispatch({ type: 'reminder/delete', id: deleteTarget.id });
+    showToast(`Reminder ${deleteTarget.task_name} dihapus dari demo.`, 'info');
+    setDeleteTarget(null);
   };
 
   const handleAddReminder = (e: React.FormEvent) => {
@@ -158,32 +99,50 @@ export default function ReminderWorkflowPage() {
     if (!newReminder.task_name.trim() || !newReminder.deadline || !newReminder.recipient_email)
       return;
 
+    const stage = getReminderStage(newReminder.deadline, new Date());
+
+    if (editingReminder) {
+      dispatch({
+        type: 'reminder/update',
+        reminder: {
+          ...editingReminder,
+          task_name: newReminder.task_name,
+          category: newReminder.category,
+          deadline: newReminder.deadline,
+          stage: stage === 'Terlambat' ? editingReminder.stage : stage,
+          repeat_cycle: newReminder.repeat_cycle,
+          pic: newReminder.pic || 'PIC Operasional',
+          recipient_email: newReminder.recipient_email,
+          notes: newReminder.notes || editingReminder.notes,
+        },
+      });
+      showToast(`Reminder ${newReminder.task_name} diperbarui.`);
+      setShowAddModal(false);
+      setEditingReminder(null);
+      setNewReminder(emptyReminder);
+      return;
+    }
+
     const created: ReminderItem = {
-      id: `REM-2025-00${reminders.length + 1}`,
+      id: nextId('REM', reminders.map((item) => item.id)),
       task_name: newReminder.task_name,
       category: newReminder.category,
       deadline: newReminder.deadline,
-      stage: 'H-7',
+      stage: stage === 'Terlambat' ? 'Hari H' : stage,
       repeat_cycle: newReminder.repeat_cycle,
       pic: newReminder.pic || 'PIC Operasional',
       recipient_email: newReminder.recipient_email,
       notes: newReminder.notes || 'Pengingat otomatis dari workflow cabang.',
       work_status: 'Belum Selesai',
       reminder_status: 'Aktif',
-      last_sent: 'Terjadwal otomatis'
+      last_sent: 'Terjadwal otomatis',
+      email_history: []
     };
 
-    setReminders([created, ...reminders]);
+    dispatch({ type: 'reminder/add', reminder: created });
+    showToast(`Reminder ${created.task_name} ditambahkan.`);
     setShowAddModal(false);
-    setNewReminder({
-      task_name: '',
-      deadline: '',
-      pic: '',
-      recipient_email: '',
-      notes: '',
-      category: 'Driver',
-      repeat_cycle: 'Tidak berulang'
-    });
+    setNewReminder(emptyReminder);
   };
 
   return (
@@ -316,7 +275,11 @@ export default function ReminderWorkflowPage() {
             </select>
 
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                setEditingReminder(null);
+                setNewReminder(emptyReminder);
+                setShowAddModal(true);
+              }}
               className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700"
             >
               <Plus className="h-4 w-4" />
@@ -418,31 +381,82 @@ export default function ReminderWorkflowPage() {
                       <div className="text-[11px] font-medium text-gray-600">{r.last_sent}</div>
                     </td>
                     <td className="px-4 py-3.5 text-center">
-                      {r.work_status === 'Belum Selesai' ? (
+                      <div className="flex items-center justify-center gap-1.5">
+                        {r.work_status === 'Belum Selesai' ? (
+                          <button
+                            onClick={() => handleMarkComplete(r.id)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-100 active:scale-95"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" /> Selesaikan
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleMarkComplete(r.id)}
+                            className="rounded-lg bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 transition hover:bg-amber-100"
+                          >
+                            Aktifkan
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleMarkComplete(r.id)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-100 active:scale-95"
+                          aria-label={`Edit reminder ${r.task_name}`}
+                          onClick={() => {
+                            setEditingReminder(r);
+                            setNewReminder({
+                              task_name: r.task_name,
+                              deadline: r.deadline,
+                              pic: r.pic,
+                              recipient_email: r.recipient_email,
+                              notes: r.notes,
+                              category: r.category,
+                              repeat_cycle: r.repeat_cycle,
+                            });
+                            setShowAddModal(true);
+                          }}
+                          className="grid h-7 w-7 place-items-center rounded bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100"
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Selesaikan
+                          <i className="fa-solid fa-pen-to-square text-[11px]" />
                         </button>
-                      ) : (
-                        <span className="text-[11px] font-semibold text-gray-400">Tuntas</span>
-                      )}
+                        <button
+                          aria-label={`Hapus reminder ${r.task_name}`}
+                          onClick={() => setDeleteTarget(r)}
+                          className="grid h-7 w-7 place-items-center rounded bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {filteredReminders.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                title="Tidak ada reminder yang cocok"
+                description="Ubah kata kunci, kategori, atau status pekerjaan untuk melihat reminder demo."
+              />
+            </div>
+          ) : null}
         </section>
       </div>
 
-      {/* POPUP TAMBAH REMINDER (5 FIELD WAJIB SESUAI PRD) */}
+      <ConfirmDialog
+        description={deleteTarget ? `Reminder ${deleteTarget.task_name} akan dihapus dari data demo.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteReminder}
+        open={deleteTarget !== null}
+        title="Hapus reminder?"
+      />
+
+      {/* POPUP TAMBAH REMINDER */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-base font-bold text-gray-900">Tambah Reminder Task Baru</h3>
+              <h3 className="text-base font-bold text-gray-900">
+                {editingReminder ? 'Edit Reminder Task' : 'Tambah Reminder Task Baru'}
+              </h3>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
@@ -481,7 +495,7 @@ export default function ReminderWorkflowPage() {
                   <label className="block text-xs font-bold text-gray-700">Siklus Pengulangan *</label>
                   <select
                     value={newReminder.repeat_cycle}
-                    onChange={(e) => setNewReminder({ ...newReminder, repeat_cycle: e.target.value as any })}
+                    onChange={(e) => setNewReminder({ ...newReminder, repeat_cycle: e.target.value as ReminderItem['repeat_cycle'] })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-xs focus:border-emerald-600 focus:outline-none"
                   >
                     <option value="Tidak berulang">Tidak berulang (H-7 s/d Hari H)</option>

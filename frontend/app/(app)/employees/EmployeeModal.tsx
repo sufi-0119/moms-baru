@@ -1,54 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-
-export interface EmployeeData {
-  id?: string;
-  name: string;
-  nickname?: string;
-  birthPlace: string;
-  birthDate: string;
-  gender: string;
-  religion: string;
-  blood: string;
-  addressKtp: string;
-  addressDomisili?: string;
-  phone: string;
-  emailPersonal: string;
-  emailKalla?: string;
-  emailOutlook?: string;
-  nikKtp: string;
-  noKk: string;
-  npwp?: string;
-  bpjsKesehatan?: string;
-  bpjsKetenagakerjaan?: string;
-  educationLevel: string;
-  schoolName: string;
-  major?: string;
-  graduationYear?: string;
-  nikCompany: string;
-  position: string;
-  jobLevel: string;
-  site: string;
-  contractStatus: string;
-  joinDate: string;
-  skNumber?: string;
-  skDate?: string;
-  contractStart?: string;
-  contractEnd?: string;
-  maritalStatus: string;
-  spouseName?: string;
-  childrenCount: number;
-  motherName?: string;
-  emergencyName?: string;
-  emergencyPhone?: string;
-  uniformSize: string;
-  shoeSize: string;
-  mcuStatus: string;
-  bankAccount?: string;
-  bankName?: string;
-  accountHolder?: string;
-}
+import React, { useState } from 'react';
+import type { EmployeeData } from '@/lib/demo/types';
 
 export function EmployeeModal({
   isOpen,
@@ -121,16 +74,10 @@ export function EmployeeModal({
     accountHolder: 'Ilham Pratama',
   };
 
-  const [formData, setFormData] = useState<EmployeeData>(defaultFormData);
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData({ ...defaultFormData, ...initialData });
-    } else {
-      setFormData(defaultFormData);
-    }
-    setCurrentStep(1);
-  }, [initialData, isOpen]);
+  const [formData, setFormData] = useState<EmployeeData>(() => ({
+    ...defaultFormData,
+    ...(initialData ?? {}),
+  }));
 
   const steps = [
     { num: 1, label: 'Identitas', icon: 'fa-address-card' },

@@ -1,0 +1,12 @@
+# Environment files
+.env*
+frontend/.env*
+.opencode/commands/**/.env*
+
+# Dependencies and build output
+node_modules
+.next
+coverage
+
+# Keep the example environment file committable
+!frontend/.env.example
