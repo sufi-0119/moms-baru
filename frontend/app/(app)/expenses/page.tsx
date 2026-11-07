@@ -1,9 +1,19 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
-import { supabase } from '@/lib/supabase';
 import type { ExpenseItem } from '@/lib/demo/types';
+import { useDemoData } from '@/lib/demo/DemoDataProvider';
+import { nextId } from '@/lib/demo/store';
+import {
+  getExpenseTotals,
+  getInvoiceSummary,
+  nextExpenseStatus,
+  nextInvoiceStatus,
+} from '@/lib/demo/expenses';
+import { useToast } from '@/components/ui/Toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Wallet,
   CheckCircle2,
@@ -15,96 +25,22 @@ import {
   Eye,
   X,
   FileSpreadsheet,
-  Edit2
+  Edit2,
+  Trash2,
+  Send,
 } from 'lucide-react';
 
-const INITIAL_EXPENSES: ExpenseItem[] = [
-  {
-    id: 'EXP-2025-001',
-    expense_date: '2025-02-28',
-    description: 'Biaya Pengurusan SIM BII & Pengujian SIMPER 4 Driver Vale',
-    category: 'Operasional',
-    amount: 3200000,
-    status: 'Sudah Dibayar',
-    notes: 'Kuitansi lunas dari Satlantas & Departemen Training Vale Sorowako.',
-    document_url: 'receipt_sim_vale.pdf',
-    submitted_by: 'Irfan Hakim',
-    invoice_number: 'INV/2025/02/001',
-    invoice_recipient: 'Satlantas Luwu Timur',
-    invoice_status: 'Sudah Dikirim',
-    invoice_sent_at: '2025-03-01',
-    invoice_notes: 'Invoice dikirim ke vendor setelah kuitansi diverifikasi.'
-  },
-  {
-    id: 'EXP-2025-002',
-    expense_date: '2025-02-27',
-    description: 'Pelunasan MCU Laboratorium Semester I di RS Inco',
-    category: 'Operasional',
-    amount: 14500000,
-    status: 'Dalam Proses',
-    notes: 'Menunggu tanda tangan persetujuan transfer finance HO.',
-    document_url: 'invoice_rsinco_mcu.pdf',
-    submitted_by: 'Siti Rahmawati',
-    invoice_number: 'INV/2025/02/002',
-    invoice_recipient: 'RS Inco Sorowako',
-    invoice_status: 'Dalam Pengerjaan',
-    invoice_notes: 'Menunggu konfirmasi nomor invoice dari bagian keuangan rumah sakit.'
-  },
-  {
-    id: 'EXP-2025-003',
-    expense_date: '2025-02-25',
-    description: 'Pengadaan APD & Rompi Reflektor Standar Tambang',
-    category: 'Operasional',
-    amount: 8750000,
-    status: 'Sudah Dibayar',
-    notes: 'Pembayaran transfer vendor safety equipment Makassar.',
-    document_url: 'invoice_apd_safety.pdf',
-    submitted_by: 'Andi Baso',
-    invoice_number: 'INV/2025/02/003',
-    invoice_recipient: 'Vendor Safety Makassar',
-    invoice_status: 'Sudah Dikirim',
-    invoice_sent_at: '2025-02-26',
-    invoice_notes: 'Invoice sudah dikirim dan menunggu pembayaran transfer finance.'
-  },
-  {
-    id: 'EXP-2025-004',
-    expense_date: '2025-02-24',
-    description: 'Konsumsi Rapat Koordinasi Tahunan dengan Manajemen PT Vale',
-    category: 'Lainnya',
-    amount: 1850000,
-    status: 'Pengajuan',
-    notes: 'Pengajuan reimburse makan siang tim operasional & klien.',
-    submitted_by: 'Nur Fadillah',
-    invoice_number: 'INV/2025/02/004',
-    invoice_recipient: 'Katering Nusantara',
-    invoice_status: 'Belum Dibuat',
-    invoice_notes: 'Invoice belum dibuat karena pengajuan masih menunggu persetujuan.'
-  },
-  {
-    id: 'EXP-2025-005',
-    expense_date: '2025-02-20',
-    description: 'Penggantian Sparepart Filter Udara Dump Truck Unit #14',
-    category: 'Operasional',
-    amount: 5400000,
-    status: 'Sudah Dibayar',
-    notes: 'Faktur suku cadang asli Komatsu dari dealer resmi.',
-    document_url: 'faktur_komatsu.pdf',
-    submitted_by: 'Irfan Hakim',
-    invoice_number: 'INV/2025/02/005',
-    invoice_recipient: 'Dealer Komatsu Makassar',
-    invoice_status: 'Sudah Dikirim',
-    invoice_sent_at: '2025-02-21',
-    invoice_notes: 'Invoice dan faktur pajak sudah dikirim ke vendor.'
-  }
-];
-
 export default function ExpensesPage() {
-  const [expenses, setExpenses] = useState<ExpenseItem[]>(INITIAL_EXPENSES);
+  const { state, dispatch } = useDemoData();
+  const { showToast } = useToast();
+  const expenses = state.expenses;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [filterInvoice, setFilterInvoice] = useState<string>('ALL');
   const [selectedExpense, setSelectedExpense] = useState<ExpenseItem | null>(null);
   const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ExpenseItem | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New expense form state
@@ -118,39 +54,7 @@ export default function ExpensesPage() {
     submitted_by: 'Admin HC/GA Cabang'
   });
 
-  // Supabase fetch with fallback
-  useEffect(() => {
-    async function loadExpenses() {
-      try {
-        const { data, error } = await supabase.from('expenses').select('*');
-        if (data && data.length > 0 && !error) {
-          const mapped: ExpenseItem[] = data.map((d: Record<string, unknown>, idx: number) => ({
-            id: typeof d.id === 'string' || typeof d.id === 'number' ? `EXP-${d.id}` : `EXP-2025-00${idx + 1}`,
-            expense_date: typeof d.expense_date === 'string' ? d.expense_date : '2025-02-28',
-            description: typeof d.title === 'string' ? d.title : typeof d.description === 'string' ? d.description : 'Pengeluaran Operasional',
-            category: d.category === 'Lainnya' ? 'Lainnya' : 'Operasional',
-            amount: Number(d.amount) || 0,
-            status:
-              d.status === 'paid'
-                ? 'Sudah Dibayar'
-                : d.status === 'reviewing' || d.status === 'approved'
-                ? 'Dalam Proses'
-                : 'Pengajuan',
-            notes: typeof d.notes === 'string' ? d.notes : '',
-            submitted_by: 'Admin HC/GA',
-            invoice_number: typeof d.invoice_number === 'string' ? d.invoice_number : '-',
-            invoice_recipient: typeof d.invoice_recipient === 'string' ? d.invoice_recipient : '-',
-            invoice_status: 'Belum Dibuat',
-            invoice_notes: 'Data invoice belum tersedia pada sumber data.'
-          }));
-          setExpenses(mapped);
-        }
-      } catch {
-        // Fallback to initial state
-      }
-    }
-    loadExpenses();
-  }, []);
+  // Supabase fetch removed: demo mode uses DemoDataProvider only.
 
   const filteredExpenses = expenses.filter((item) => {
     const matchSearch =
@@ -159,20 +63,17 @@ export default function ExpensesPage() {
       item.submitted_by.toLowerCase().includes(searchTerm.toLowerCase());
     const matchCat = filterCategory === 'ALL' || item.category === filterCategory;
     const matchStat = filterStatus === 'ALL' || item.status === filterStatus;
-    return matchSearch && matchCat && matchStat;
+    const matchInvoice = filterInvoice === 'ALL' || item.invoice_status === filterInvoice;
+    return matchSearch && matchCat && matchStat && matchInvoice;
   });
 
   // Calculate metrics
-  const totalAmount = expenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const paidAmount = expenses
-    .filter((e) => e.status === 'Sudah Dibayar')
-    .reduce((acc, curr) => acc + curr.amount, 0);
-  const inProcessAmount = expenses
-    .filter((e) => e.status === 'Dalam Proses')
-    .reduce((acc, curr) => acc + curr.amount, 0);
-  const submittedAmount = expenses
-    .filter((e) => e.status === 'Pengajuan')
-    .reduce((acc, curr) => acc + curr.amount, 0);
+  const expenseTotals = getExpenseTotals(expenses);
+  const invoiceSummary = getInvoiceSummary(expenses);
+  const totalAmount = expenseTotals.total;
+  const paidAmount = expenseTotals.paid;
+  const inProcessAmount = expenseTotals.inProcess;
+  const submittedAmount = expenseTotals.submitted;
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -209,7 +110,7 @@ export default function ExpensesPage() {
     if (!newExpense.description.trim() || !newExpense.amount) return;
 
     const created: ExpenseItem = {
-      id: `EXP-2025-00${expenses.length + 1}`,
+      id: nextId('EXP', expenses.map((item) => item.id)),
       description: newExpense.description,
       category: newExpense.category,
       amount: Number(newExpense.amount),
@@ -223,7 +124,8 @@ export default function ExpensesPage() {
       invoice_notes: 'Invoice akan dibuat setelah pengajuan disetujui.'
     };
 
-    setExpenses([created, ...expenses]);
+    dispatch({ type: 'expense/add', expense: created });
+    showToast(`Pengajuan biaya ${created.id} ditambahkan.`);
     setShowAddModal(false);
     setNewExpense({
       description: '',
@@ -239,9 +141,44 @@ export default function ExpensesPage() {
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingExpense) return;
-    setExpenses(prev => prev.map(item => item.id === editingExpense.id ? editingExpense : item));
+    dispatch({ type: 'expense/update', expense: editingExpense });
+    showToast(`Data biaya ${editingExpense.id} diperbarui.`);
     setEditingExpense(null);
-    alert(`Data biaya ${editingExpense.id} berhasil diperbarui!`);
+  };
+
+  const handleAdvanceStatus = (item: ExpenseItem) => {
+    const next = nextExpenseStatus(item.status);
+    if (!next) return;
+    dispatch({ type: 'expense/setStatus', id: item.id, status: next });
+    if (selectedExpense?.id === item.id) {
+      setSelectedExpense({ ...item, status: next });
+    }
+    showToast(`Status biaya ${item.id} menjadi ${next}.`, 'info');
+  };
+
+  const handleAdvanceInvoice = (item: ExpenseItem) => {
+    const next = nextInvoiceStatus(item.invoice_status);
+    if (!next) return;
+    const updated: ExpenseItem = {
+      ...item,
+      invoice_status: next,
+      invoice_sent_at:
+        next === 'Sudah Dikirim'
+          ? new Date().toISOString().split('T')[0]
+          : item.invoice_sent_at,
+    };
+    dispatch({ type: 'expense/update', expense: updated });
+    if (selectedExpense?.id === item.id) {
+      setSelectedExpense(updated);
+    }
+    showToast(`Status invoice ${item.id} menjadi ${next}.`, 'info');
+  };
+
+  const handleDeleteExpense = () => {
+    if (!deleteTarget) return;
+    dispatch({ type: 'expense/delete', id: deleteTarget.id });
+    showToast(`Pengajuan ${deleteTarget.id} dihapus dari demo.`, 'info');
+    setDeleteTarget(null);
   };
 
   return (
@@ -316,6 +253,22 @@ export default function ExpensesPage() {
           </div>
         </section>
 
+        {/* Ringkasan Invoice */}
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Invoice Sudah Dikirim</p>
+            <p className="mt-1 text-xl font-black text-emerald-900">{invoiceSummary.sent}</p>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Invoice Dalam Pengerjaan</p>
+            <p className="mt-1 text-xl font-black text-amber-900">{invoiceSummary.inProgress}</p>
+          </div>
+          <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Invoice Belum Dibuat</p>
+            <p className="mt-1 text-xl font-black text-gray-800">{invoiceSummary.notCreated}</p>
+          </div>
+        </section>
+
         {/* Toolbar & Filter Bar */}
         <section className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
           <div className="relative min-w-[280px] flex-1">
@@ -359,6 +312,17 @@ export default function ExpensesPage() {
               <option value="Sudah Dibayar">Sudah Dibayar</option>
             </select>
 
+            <select
+              value={filterInvoice}
+              onChange={(e) => setFilterInvoice(e.target.value)}
+              className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-600 focus:outline-none"
+            >
+              <option value="ALL">Semua Status Invoice</option>
+              <option value="Belum Dibuat">Belum Dibuat</option>
+              <option value="Dalam Pengerjaan">Dalam Pengerjaan</option>
+              <option value="Sudah Dikirim">Sudah Dikirim</option>
+            </select>
+
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700"
@@ -390,6 +354,7 @@ export default function ExpensesPage() {
                   <th className="px-4 py-3.5">Kategori</th>
                   <th className="px-4 py-3.5 text-right">Nominal (IDR)</th>
                   <th className="px-4 py-3.5 text-center">Status Pembayaran</th>
+                  <th className="px-4 py-3.5 text-center">Status Invoice</th>
                   <th className="px-4 py-3.5 text-center">Dokumen</th>
                   <th className="px-4 py-3.5 text-center">Aksi</th>
                 </tr>
@@ -436,6 +401,34 @@ export default function ExpensesPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            exp.invoice_status === 'Sudah Dikirim'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : exp.invoice_status === 'Dalam Pengerjaan'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {exp.invoice_status}
+                        </span>
+                        {nextInvoiceStatus(exp.invoice_status) ? (
+                          <button
+                            onClick={() => handleAdvanceInvoice(exp)}
+                            className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            <Send className="h-3 w-3" />
+                            {exp.invoice_status === 'Belum Dibuat' ? 'Proses Invoice' : 'Tandai Terkirim'}
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-gray-400">
+                            {exp.invoice_sent_at ? `Dikirim ${exp.invoice_sent_at}` : '-'}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
                       {exp.document_url ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
                           <FileText className="h-3.5 w-3.5" /> Ada
@@ -460,6 +453,13 @@ export default function ExpensesPage() {
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
+                        <button
+                          title="Hapus Pengajuan Biaya"
+                          onClick={() => setDeleteTarget(exp)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -467,8 +467,24 @@ export default function ExpensesPage() {
               </tbody>
             </table>
           </div>
+          {filteredExpenses.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                title="Tidak ada transaksi yang cocok"
+                description="Ubah kata kunci atau filter kategori, status pembayaran, dan status invoice."
+              />
+            </div>
+          ) : null}
         </section>
       </div>
+
+      <ConfirmDialog
+        description={deleteTarget ? `Pengajuan ${deleteTarget.id} akan dihapus dari data demo.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteExpense}
+        open={deleteTarget !== null}
+        title="Hapus pengajuan biaya?"
+      />
 
       {/* MODAL DETAIL BIAYA */}
       {selectedExpense && (
@@ -522,6 +538,47 @@ export default function ExpensesPage() {
                 <span className="block text-[10px] font-bold uppercase">Status Pembayaran Terkini</span>
                 <p className="mt-0.5 text-sm font-bold">{selectedExpense.status}</p>
               </div>
+
+              <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sky-900">
+                <span className="block text-[10px] font-bold uppercase">Monitoring Invoice</span>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="block text-[10px] text-sky-700">Nomor Invoice</span>
+                    <span className="font-semibold">{selectedExpense.invoice_number}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-sky-700">Penerima</span>
+                    <span className="font-semibold">{selectedExpense.invoice_recipient}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-sky-700">Status Invoice</span>
+                    <span className="font-semibold">{selectedExpense.invoice_status}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-sky-700">Tanggal Dikirim</span>
+                    <span className="font-semibold">{selectedExpense.invoice_sent_at || '-'}</span>
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] text-sky-800">{selectedExpense.invoice_notes}</p>
+                {nextInvoiceStatus(selectedExpense.invoice_status) ? (
+                  <button
+                    onClick={() => handleAdvanceInvoice(selectedExpense)}
+                    className="mt-2 inline-flex items-center gap-1 rounded-lg bg-sky-600 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-sky-700"
+                  >
+                    <Send className="h-3 w-3" />
+                    {selectedExpense.invoice_status === 'Belum Dibuat' ? 'Proses Invoice' : 'Tandai Invoice Terkirim'}
+                  </button>
+                ) : null}
+              </div>
+
+              {nextExpenseStatus(selectedExpense.status) ? (
+                <button
+                  onClick={() => handleAdvanceStatus(selectedExpense)}
+                  className="w-full rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
+                >
+                  Ubah Status ke {nextExpenseStatus(selectedExpense.status)}
+                </button>
+              ) : null}
             </div>
 
             <div className="mt-5 flex justify-end">
