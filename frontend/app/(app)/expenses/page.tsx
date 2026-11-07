@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/AppShell';
 import { supabase } from '@/lib/supabase';
+import type { ExpenseItem } from '@/lib/demo/types';
 import {
   Wallet,
   CheckCircle2,
@@ -17,18 +18,6 @@ import {
   Edit2
 } from 'lucide-react';
 
-export interface ExpenseItem {
-  id: string;
-  expense_date: string;
-  description: string;
-  category: 'Operasional' | 'Lainnya';
-  amount: number;
-  status: 'Pengajuan' | 'Dalam Proses' | 'Sudah Dibayar';
-  notes: string;
-  document_url?: string;
-  submitted_by: string;
-}
-
 const INITIAL_EXPENSES: ExpenseItem[] = [
   {
     id: 'EXP-2025-001',
@@ -39,7 +28,12 @@ const INITIAL_EXPENSES: ExpenseItem[] = [
     status: 'Sudah Dibayar',
     notes: 'Kuitansi lunas dari Satlantas & Departemen Training Vale Sorowako.',
     document_url: 'receipt_sim_vale.pdf',
-    submitted_by: 'Irfan Hakim'
+    submitted_by: 'Irfan Hakim',
+    invoice_number: 'INV/2025/02/001',
+    invoice_recipient: 'Satlantas Luwu Timur',
+    invoice_status: 'Sudah Dikirim',
+    invoice_sent_at: '2025-03-01',
+    invoice_notes: 'Invoice dikirim ke vendor setelah kuitansi diverifikasi.'
   },
   {
     id: 'EXP-2025-002',
@@ -50,7 +44,11 @@ const INITIAL_EXPENSES: ExpenseItem[] = [
     status: 'Dalam Proses',
     notes: 'Menunggu tanda tangan persetujuan transfer finance HO.',
     document_url: 'invoice_rsinco_mcu.pdf',
-    submitted_by: 'Siti Rahmawati'
+    submitted_by: 'Siti Rahmawati',
+    invoice_number: 'INV/2025/02/002',
+    invoice_recipient: 'RS Inco Sorowako',
+    invoice_status: 'Dalam Pengerjaan',
+    invoice_notes: 'Menunggu konfirmasi nomor invoice dari bagian keuangan rumah sakit.'
   },
   {
     id: 'EXP-2025-003',
@@ -61,7 +59,12 @@ const INITIAL_EXPENSES: ExpenseItem[] = [
     status: 'Sudah Dibayar',
     notes: 'Pembayaran transfer vendor safety equipment Makassar.',
     document_url: 'invoice_apd_safety.pdf',
-    submitted_by: 'Andi Baso'
+    submitted_by: 'Andi Baso',
+    invoice_number: 'INV/2025/02/003',
+    invoice_recipient: 'Vendor Safety Makassar',
+    invoice_status: 'Sudah Dikirim',
+    invoice_sent_at: '2025-02-26',
+    invoice_notes: 'Invoice sudah dikirim dan menunggu pembayaran transfer finance.'
   },
   {
     id: 'EXP-2025-004',
@@ -71,7 +74,11 @@ const INITIAL_EXPENSES: ExpenseItem[] = [
     amount: 1850000,
     status: 'Pengajuan',
     notes: 'Pengajuan reimburse makan siang tim operasional & klien.',
-    submitted_by: 'Nur Fadillah'
+    submitted_by: 'Nur Fadillah',
+    invoice_number: 'INV/2025/02/004',
+    invoice_recipient: 'Katering Nusantara',
+    invoice_status: 'Belum Dibuat',
+    invoice_notes: 'Invoice belum dibuat karena pengajuan masih menunggu persetujuan.'
   },
   {
     id: 'EXP-2025-005',
@@ -82,7 +89,12 @@ const INITIAL_EXPENSES: ExpenseItem[] = [
     status: 'Sudah Dibayar',
     notes: 'Faktur suku cadang asli Komatsu dari dealer resmi.',
     document_url: 'faktur_komatsu.pdf',
-    submitted_by: 'Irfan Hakim'
+    submitted_by: 'Irfan Hakim',
+    invoice_number: 'INV/2025/02/005',
+    invoice_recipient: 'Dealer Komatsu Makassar',
+    invoice_status: 'Sudah Dikirim',
+    invoice_sent_at: '2025-02-21',
+    invoice_notes: 'Invoice dan faktur pajak sudah dikirim ke vendor.'
   }
 ];
 
@@ -125,7 +137,11 @@ export default function ExpensesPage() {
                 ? 'Dalam Proses'
                 : 'Pengajuan',
             notes: typeof d.notes === 'string' ? d.notes : '',
-            submitted_by: 'Admin HC/GA'
+            submitted_by: 'Admin HC/GA',
+            invoice_number: typeof d.invoice_number === 'string' ? d.invoice_number : '-',
+            invoice_recipient: typeof d.invoice_recipient === 'string' ? d.invoice_recipient : '-',
+            invoice_status: 'Belum Dibuat',
+            invoice_notes: 'Data invoice belum tersedia pada sumber data.'
           }));
           setExpenses(mapped);
         }
@@ -200,7 +216,11 @@ export default function ExpensesPage() {
       expense_date: newExpense.expense_date,
       status: newExpense.status,
       notes: newExpense.notes || 'Pengajuan baru dari cabang.',
-      submitted_by: newExpense.submitted_by
+      submitted_by: newExpense.submitted_by,
+      invoice_number: '-',
+      invoice_recipient: '-',
+      invoice_status: 'Belum Dibuat',
+      invoice_notes: 'Invoice akan dibuat setelah pengajuan disetujui.'
     };
 
     setExpenses([created, ...expenses]);

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
+import type { ReminderItem } from '@/lib/demo/types';
 import {
   BellRing,
   Clock,
@@ -12,21 +13,6 @@ import {
   Mail,
   X,
 } from 'lucide-react';
-
-export interface ReminderItem {
-  id: string;
-  task_name: string;
-  category: 'Driver' | 'BPJS' | 'Catering' | 'Employee' | 'Facility';
-  deadline: string;
-  stage: 'H-7' | 'H-3' | 'H-1' | 'Hari H';
-  repeat_cycle: 'Tidak berulang' | 'Monthly' | 'Quarterly' | 'Yearly';
-  pic: string;
-  recipient_email: string;
-  notes: string;
-  work_status: 'Belum Selesai' | 'Selesai';
-  reminder_status: 'Aktif' | 'Selesai';
-  last_sent: string;
-}
 
 const INITIAL_REMINDERS: ReminderItem[] = [
   {
@@ -41,7 +27,10 @@ const INITIAL_REMINDERS: ReminderItem[] = [
     notes: 'Wajib verifikasi kelayakan fisik & sertifikat safety SIM B2 Pertambangan',
     work_status: 'Belum Selesai',
     reminder_status: 'Aktif',
-    last_sent: 'Hari H terkirim (08:15 WITA)'
+    last_sent: 'Hari H terkirim (08:15 WITA)',
+    email_history: [
+      { sent_at: '2025-03-02T08:15:00+08:00', stage: 'Hari H', recipient: 'irfan.hakim@kalla.co.id' }
+    ]
   },
   {
     id: 'REM-2025-002',
@@ -55,7 +44,10 @@ const INITIAL_REMINDERS: ReminderItem[] = [
     notes: 'Rekap 256 data NIK & premi asuransi wajib disinkronkan ke bank payroll',
     work_status: 'Belum Selesai',
     reminder_status: 'Aktif',
-    last_sent: 'H-3 terkirim (09:00 WITA)'
+    last_sent: 'H-3 terkirim (09:00 WITA)',
+    email_history: [
+      { sent_at: '2025-03-02T09:00:00+08:00', stage: 'H-3', recipient: 'siti.rahma@kalla.co.id' }
+    ]
   },
   {
     id: 'REM-2025-003',
@@ -69,7 +61,10 @@ const INITIAL_REMINDERS: ReminderItem[] = [
     notes: 'Inspeksi standar nutrisi dan katering shift malam vendor PT Boga Nusantara',
     work_status: 'Belum Selesai',
     reminder_status: 'Aktif',
-    last_sent: 'H-1 terkirim (06:00 WITA)'
+    last_sent: 'H-1 terkirim (06:00 WITA)',
+    email_history: [
+      { sent_at: '2025-03-02T06:00:00+08:00', stage: 'H-1', recipient: 'nur.fadillah@kalla.co.id' }
+    ]
   },
   {
     id: 'REM-2025-004',
@@ -83,7 +78,8 @@ const INITIAL_REMINDERS: ReminderItem[] = [
     notes: 'Sudah diselesaikan sebelum Hari H. Seluruh reminder otomatis dihentikan.',
     work_status: 'Selesai',
     reminder_status: 'Selesai',
-    last_sent: 'Dihentikan (Pekerjaan Selesai)'
+    last_sent: 'Dihentikan (Pekerjaan Selesai)',
+    email_history: []
   },
   {
     id: 'REM-2025-005',
@@ -97,7 +93,10 @@ const INITIAL_REMINDERS: ReminderItem[] = [
     notes: 'Disposisi teknisi dinas meteorologi untuk sertifikat laik jalan',
     work_status: 'Belum Selesai',
     reminder_status: 'Aktif',
-    last_sent: 'H-7 terkirim (08:30 WITA)'
+    last_sent: 'H-7 terkirim (08:30 WITA)',
+    email_history: [
+      { sent_at: '2025-03-02T08:30:00+08:00', stage: 'H-7', recipient: 'nur.fadillah@kalla.co.id' }
+    ]
   }
 ];
 
@@ -165,7 +164,8 @@ export default function ReminderWorkflowPage() {
       notes: newReminder.notes || 'Pengingat otomatis dari workflow cabang.',
       work_status: 'Belum Selesai',
       reminder_status: 'Aktif',
-      last_sent: 'Terjadwal otomatis'
+      last_sent: 'Terjadwal otomatis',
+      email_history: []
     };
 
     setReminders([created, ...reminders]);

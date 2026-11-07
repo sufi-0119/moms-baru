@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
+import type { RecruitmentCandidate } from '@/lib/demo/types';
 import {
   Users,
   CheckCircle2,
@@ -38,33 +39,8 @@ const ORDERED_STAGES: StageInfo[] = [
   { key: 'simper', name: '13. SDT Praktik & SIMPER', group: 'Eksternal' },
 ];
 
-export interface RecruitmentCandidate {
+export interface RecruitmentCandidatePlaceholder {
   id: string;
-  name: string;
-  phone: string;
-  recommender: string; // Orang yang merekomendasikan
-  recommendation: string; // Penempatan
-  current_stage: string;
-  stage_group: 'Internal HO' | 'Internal Cabang' | 'Eksternal';
-  eligibility_status: 'Layak Kerja' | 'Belum Layak Kerja';
-  progress_pct: number;
-  notes: string;
-  created_at: string;
-  stages_data: {
-    berkas: { completed: boolean; date?: string };
-    interview: { completed: boolean; date?: string };
-    tpub: { completed: boolean; date?: string };
-    praktik: { completed: boolean; date?: string };
-    kontrak: { completed: boolean; date?: string };
-    bpjs: { completed: boolean; date?: string };
-    pkwt: { completed: boolean; date?: string };
-    osc: { completed: boolean; date?: string };
-    mcu: { completed: boolean; date?: string };
-    gip_ebs: { completed: boolean; date?: string };
-    badge: { completed: boolean; date?: string };
-    sdt_teori: { completed: boolean; date?: string };
-    simper: { completed: boolean; date?: string };
-  };
 }
 
 const INITIAL_CANDIDATES: RecruitmentCandidate[] = [

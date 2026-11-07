@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
-import { EmployeeModal, EmployeeData } from './EmployeeModal';
+import { EmployeeModal } from './EmployeeModal';
+import type { EmployeeData } from '@/lib/demo/types';
 import { X, User, Phone, Briefcase, Award, Heart, GraduationCap, Shield } from 'lucide-react';
 
 interface EmployeeItem extends EmployeeData {

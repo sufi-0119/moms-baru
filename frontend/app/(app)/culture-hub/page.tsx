@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/AppShell';
 import { supabase } from '@/lib/supabase';
+import type { CulturePost } from '@/lib/demo/types';
 import {
   Sparkles,
   Award,
@@ -12,25 +13,6 @@ import {
   ArrowRight,
   X
 } from 'lucide-react';
-
-export interface CulturePost {
-  id: string;
-  title: string;
-  category: 'Culture' | 'Implementation/Improvement' | 'Achievement/Recognition';
-  date: string;
-  goal: string;
-  description: string;
-  pic: string;
-  image_url: string;
-  status: 'Publikasi' | 'Draft';
-  // Before-Action-After-Evidence (Improvement framework)
-  improvement?: {
-    before: string;
-    action: string;
-    after: string;
-    evidence: string;
-  };
-}
 
 const INITIAL_CULTURE_POSTS: CulturePost[] = [
   {
