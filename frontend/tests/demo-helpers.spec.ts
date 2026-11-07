@@ -8,6 +8,7 @@ import {
   nextInvoiceStatus,
   getInvoiceSummary,
 } from '../lib/demo/expenses';
+import { filterCulturePosts, sortCulturePostsByDate } from '../lib/demo/culture';
 import { createDemoSeed } from '../lib/demo/store';
 
 const NOW = new Date('2026-11-05T00:00:00.000Z');
@@ -67,4 +68,12 @@ test('invoice status advances and summary counts', () => {
     { invoice_status: 'Dalam Pengerjaan' },
     { invoice_status: 'Belum Dibuat' },
   ])).toEqual({ sent: 1, inProgress: 1, notCreated: 1 });
+});
+
+test('culture filters by category and status', () => {
+  const seed = createDemoSeed(NOW);
+  const onlyCulture = filterCulturePosts(seed.culturePosts, { category: 'Culture', status: 'Publikasi' });
+  expect(onlyCulture.every((p) => p.category === 'Culture' && p.status === 'Publikasi')).toBe(true);
+  const sorted = sortCulturePostsByDate(seed.culturePosts);
+  expect(new Date(sorted[0].date).getTime()).toBeGreaterThanOrEqual(new Date(sorted[1].date).getTime());
 });

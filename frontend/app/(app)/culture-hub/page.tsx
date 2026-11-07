@@ -1,9 +1,14 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageHeader } from '@/components/AppShell';
-import { supabase } from '@/lib/supabase';
 import type { CulturePost } from '@/lib/demo/types';
+import { useDemoData } from '@/lib/demo/DemoDataProvider';
+import { nextId } from '@/lib/demo/store';
+import { filterCulturePosts, sortCulturePostsByDate } from '@/lib/demo/culture';
+import { useToast } from '@/components/ui/Toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Sparkles,
   Award,
@@ -11,65 +16,27 @@ import {
   Plus,
   Search,
   ArrowRight,
-  X
+  X,
+  Trash2,
+  Edit2
 } from 'lucide-react';
 
-const INITIAL_CULTURE_POSTS: CulturePost[] = [
-  {
-    id: 'CUL-2025-001',
-    title: 'Penerapan Daily Safety Morning Talk & Kalla Values di Mess Sorowako',
-    category: 'Culture',
-    date: '2025-02-26',
-    goal: 'Meningkatkan kesadaran K3 dan kedisiplinan operasional driver tambang',
-    description:
-      'Briefing pagi rutin berdurasi 15 menit sebelum pergerakan armada hauling. Mengintegrasikan budaya kerja jujur, pantang menyerah, dan kepedulian lingkungan.',
-    pic: 'Andi Baso (HSE Officer)',
-    image_url: 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?q=80&w=800&auto=format&fit=crop',
-    status: 'Publikasi'
-  },
-  {
-    id: 'CUL-2025-002',
-    title: 'Optimasi Waktu Siklus Hauling Pit-to-Port via Jalur Alternatif Km 14',
-    category: 'Implementation/Improvement',
-    date: '2025-02-22',
-    goal: 'Efisiensi konsumsi solar dan pemangkasan cycle time pengiriman ore tambang',
-    description:
-      'Inisiatif rekayasa rute hauling oleh tim fleet support Luwu Raya bersama pengawas lapangan PT Vale.',
-    pic: 'Irfan Hakim (Fleet Supervisor)',
-    image_url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
-    status: 'Publikasi',
-    improvement: {
-      before: 'Cycle time rata-rata 48 menit per trip akibat kemacetan di persimpangan Workshop Km 12.',
-      action: 'Pelebaran radius belokan dan pengalihan lajur truk kosongan ke jalan bypass Km 14.',
-      after: 'Cycle time terpangkas menjadi 38 menit (-20%), menghemat bahan bakar 60 liter/hari/unit.',
-      evidence: 'Log sensor telematika GPS dan telemetry data fleet management.'
-    }
-  },
-  {
-    id: 'CUL-2025-003',
-    title: 'Penghargaan Zero Accident 1.000.000 Jam Kerja dari Klien PT Vale',
-    category: 'Achievement/Recognition',
-    date: '2025-02-15',
-    goal: 'Apresiasi komitmen keselamatan tanpa kecelakaan kerja sepanjang tahun 2024',
-    description:
-      'Pemberian piagam emas dari Manajemen PT Vale Indonesia Tbk kepada PT Bumi Jasa Utama Cabang Luwu Raya atas rekor 0 lost time injury (LTI).',
-    pic: 'Kepala Cabang Luwu Raya',
-    image_url: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?q=80&w=800&auto=format&fit=crop',
-    status: 'Publikasi'
-  }
-];
-
 export default function CultureHubPage() {
-  const [posts, setPosts] = useState<CulturePost[]>(INITIAL_CULTURE_POSTS);
+  const { state, dispatch } = useDemoData();
+  const { showToast } = useToast();
+  const posts = state.culturePosts;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedPost, setSelectedPost] = useState<CulturePost | null>(null);
+  const [editingPost, setEditingPost] = useState<CulturePost | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CulturePost | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New Post Form State
-  const [newPost, setNewPost] = useState({
+  const emptyPost = {
     title: '',
-    category: 'Culture' as 'Culture' | 'Implementation/Improvement' | 'Achievement/Recognition',
+    category: 'Culture' as CulturePost['category'],
     date: new Date().toISOString().split('T')[0],
     goal: '',
     description: '',
@@ -79,55 +46,55 @@ export default function CultureHubPage() {
     action: '',
     after: '',
     evidence: ''
-  });
+  };
+  const [newPost, setNewPost] = useState(emptyPost);
 
-  // Supabase sync with fallback
-  useEffect(() => {
-    async function loadCulturePosts() {
-      try {
-        const { data, error } = await supabase.from('culture_posts').select('*');
-        if (data && data.length > 0 && !error) {
-          const mapped: CulturePost[] = data.map((d: Record<string, unknown>, idx: number) => ({
-            id: typeof d.id === 'string' || typeof d.id === 'number' ? `CUL-${d.id}` : `CUL-2025-00${idx + 1}`,
-            title: typeof d.title === 'string' ? d.title : 'Dokumentasi Aktivitas',
-            category:
-              d.category === 'Implementation/Improvement' || d.category === 'Achievement/Recognition'
-                ? d.category
-                : 'Culture',
-            date: typeof d.event_date === 'string' ? d.event_date : typeof d.created_at === 'string' ? d.created_at : '2025-02-25',
-            goal: typeof d.goal === 'string' ? d.goal : 'Membangun nilai budaya perusahaan',
-            description: typeof d.content === 'string' ? d.content : typeof d.description === 'string' ? d.description : '',
-            pic: typeof d.pic === 'string' ? d.pic : 'Cabang Luwu Raya',
-            image_url:
-              typeof d.image_url === 'string' && d.image_url
-                ? d.image_url
-                : 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?q=80&w=800&auto=format&fit=crop',
-            status: 'Publikasi'
-          }));
-          setPosts(mapped);
-        }
-      } catch {
-        // Fallback to initial state
-      }
-    }
-    loadCulturePosts();
-  }, []);
-
-  const filteredPosts = posts.filter((p) => {
-    const matchSearch =
-      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.pic.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCat = selectedCategory === 'ALL' || p.category === selectedCategory;
-    return matchSearch && matchCat;
-  });
+  const filteredPosts = sortCulturePostsByDate(
+    filterCulturePosts(posts, {
+      category: selectedCategory,
+      status: selectedStatus,
+      search: searchTerm,
+    }),
+  );
 
   const handleAddPost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPost.title.trim() || !newPost.description.trim()) return;
 
+    const improvement =
+      newPost.category === 'Implementation/Improvement'
+        ? {
+            before: newPost.before || '-',
+            action: newPost.action || '-',
+            after: newPost.after || '-',
+            evidence: newPost.evidence || '-'
+          }
+        : undefined;
+
+    if (editingPost) {
+      dispatch({
+        type: 'culture/update',
+        post: {
+          ...editingPost,
+          title: newPost.title,
+          category: newPost.category,
+          date: newPost.date,
+          goal: newPost.goal || editingPost.goal,
+          description: newPost.description,
+          pic: newPost.pic,
+          image_url: newPost.image_url.trim() || editingPost.image_url,
+          improvement,
+        },
+      });
+      showToast(`Postingan ${newPost.title} diperbarui.`);
+      setShowAddModal(false);
+      setEditingPost(null);
+      setNewPost(emptyPost);
+      return;
+    }
+
     const created: CulturePost = {
-      id: `CUL-2025-00${posts.length + 1}`,
+      id: nextId('CUL', posts.map((item) => item.id)),
       title: newPost.title,
       category: newPost.category,
       date: newPost.date,
@@ -138,32 +105,20 @@ export default function CultureHubPage() {
         newPost.image_url.trim() ||
         'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
       status: 'Publikasi',
-      improvement:
-        newPost.category === 'Implementation/Improvement'
-          ? {
-              before: newPost.before || '-',
-              action: newPost.action || '-',
-              after: newPost.after || '-',
-              evidence: newPost.evidence || '-'
-            }
-          : undefined
+      improvement
     };
 
-    setPosts([created, ...posts]);
+    dispatch({ type: 'culture/add', post: created });
+    showToast(`Postingan ${created.title} ditambahkan.`);
     setShowAddModal(false);
-    setNewPost({
-      title: '',
-      category: 'Culture',
-      date: new Date().toISOString().split('T')[0],
-      goal: '',
-      description: '',
-      pic: 'Tim HC/GA Luwu Raya',
-      image_url: '',
-      before: '',
-      action: '',
-      after: '',
-      evidence: ''
-    });
+    setNewPost(emptyPost);
+  };
+
+  const handleDeletePost = () => {
+    if (!deleteTarget) return;
+    dispatch({ type: 'culture/delete', id: deleteTarget.id });
+    showToast(`Postingan ${deleteTarget.title} dihapus dari demo.`, 'info');
+    setDeleteTarget(null);
   };
 
   return (
@@ -267,8 +222,22 @@ export default function CultureHubPage() {
               ))}
             </div>
 
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 focus:border-emerald-600 focus:outline-none"
+            >
+              <option value="ALL">Semua Status</option>
+              <option value="Publikasi">Publikasi</option>
+              <option value="Draft">Draft</option>
+            </select>
+
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                setEditingPost(null);
+                setNewPost(emptyPost);
+                setShowAddModal(true);
+              }}
               className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700"
             >
               <Plus className="h-4 w-4" />
@@ -320,21 +289,65 @@ export default function CultureHubPage() {
                 <div className="mt-4 border-t border-gray-100 pt-3">
                   <div className="flex items-center justify-between text-[11px] text-gray-500">
                     <span className="truncate">PIC: {post.pic}</span>
-                    <button
-                      onClick={() => setSelectedPost(post)}
-                      className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline"
-                    >
-                      Lihat Rincian <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        aria-label={`Edit postingan ${post.title}`}
+                        onClick={() => {
+                          setEditingPost(post);
+                          setNewPost({
+                            title: post.title,
+                            category: post.category,
+                            date: post.date,
+                            goal: post.goal,
+                            description: post.description,
+                            pic: post.pic,
+                            image_url: post.image_url,
+                            before: post.improvement?.before ?? '',
+                            action: post.improvement?.action ?? '',
+                            after: post.improvement?.after ?? '',
+                            evidence: post.improvement?.evidence ?? '',
+                          });
+                          setShowAddModal(true);
+                        }}
+                        className="grid h-7 w-7 place-items-center rounded bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        aria-label={`Hapus postingan ${post.title}`}
+                        onClick={() => setDeleteTarget(post)}
+                        className="grid h-7 w-7 place-items-center rounded bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedPost(post)}
+                        className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline"
+                      >
+                        Lihat Rincian <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           ))}
         </section>
+        {filteredPosts.length === 0 ? (
+          <EmptyState
+            title="Belum ada dokumentasi yang cocok"
+            description="Ubah kata kunci, kategori, atau status publikasi untuk melihat dokumentasi demo."
+          />
+        ) : null}
       </div>
 
-      {/* MODAL DETAIL CULTURE & IMPROVEMENT */}
+      <ConfirmDialog
+        description={deleteTarget ? `Postingan ${deleteTarget.title} akan dihapus dari data demo.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeletePost}
+        open={deleteTarget !== null}
+        title="Hapus dokumentasi?"
+      />
       {selectedPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
@@ -430,7 +443,9 @@ export default function CultureHubPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-base font-bold text-gray-900">Tambah Dokumentasi Culture & Improvement</h3>
+              <h3 className="text-base font-bold text-gray-900">
+                {editingPost ? 'Edit Dokumentasi Culture & Improvement' : 'Tambah Dokumentasi Culture & Improvement'}
+              </h3>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
