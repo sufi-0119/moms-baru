@@ -30,6 +30,17 @@ npm run lint
 npm run build
 ```
 
+## Demo scope and placeholder routes
+
+This build is a UI demo backed by `DemoDataProvider` (seed data in `lib/demo`, persisted in
+`localStorage`). Supabase is used for authentication only; no production data is read or written.
+
+The following routes are outside the demo scope and redirect automatically:
+
+- `/reminders` redirects to `/reminder-workflow`.
+- `/audit-log`, `/dokumen-sertifikasi`, `/manpower-report`, `/monitoring-sk`, and `/pengaturan`
+  redirect to `/dashboard`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
